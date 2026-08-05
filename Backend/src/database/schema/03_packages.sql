@@ -1,0 +1,18 @@
+CREATE TABLE IF NOT EXISTS packages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    title VARCHAR(255) NOT NULL,
+    location VARCHAR(255) NOT NULL,
+    duration VARCHAR(100) NOT NULL,
+
+    group_size INT NOT NULL,
+    price DECIMAL(10,2) NOT NULL,
+
+    image TEXT,
+
+    package_experience TEXT,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP
+);

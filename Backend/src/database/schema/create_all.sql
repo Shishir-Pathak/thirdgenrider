@@ -1,0 +1,12 @@
+SOURCE 01_bikes.sql;
+SOURCE 02_bike_bookings.sql;
+SOURCE 03_packages.sql;
+SOURCE 04_package_itinerary.sql;
+SOURCE 05_package_highlights.sql;
+SOURCE 06_package_inclusions.sql;
+SOURCE 07_package_bookings.sql;
+SOURCE 08_blogs.sql;
+SOURCE 09_blog_comments.sql;
+SOURCE 10_company_details.sql;
+SOURCE 11_contact_messages.sql;
+SOURCE 12_site_content.sql;
