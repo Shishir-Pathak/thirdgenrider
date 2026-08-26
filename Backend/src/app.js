@@ -2,36 +2,27 @@ import express from "express";
 import cors from "cors";
 import routes from "./routes/index.js";
 
-
 export function createApp() {
+  const app = express();
 
-	const app = express();
+  app.use(cors());
 
+  // Handle JSON requests
+  app.use(express.json());
 
-	app.use(cors());
+  // Handle form-data text fields
+  // (needed with multer uploads)
+  app.use(
+    express.urlencoded({
+      extended: true,
+    }),
+  );
 
+  app.get("/", (req, res) => {
+    res.json({ message: "API Running" });
+  });
 
-	// Handle JSON requests
-	app.use(express.json());
+  app.use("/api", routes);
 
-
-	// Handle form-data text fields
-	// (needed with multer uploads)
-	app.use(express.urlencoded({
-		extended: true
-	}));
-
-
-	app.get("/", (_req, res) => {
-
-		res.send("API Running");
-
-	});
-
-
-	app.use("/api", routes);
-
-
-	return app;
-
+  return app;
 }

@@ -2,9 +2,10 @@ import { pool } from "../config/db.js";
 
 const Bike = {
   // Get all bikes
-  async findAll() {
+  async findAll(isBike = true) {
     const [rows] = await pool.query(
-      "SELECT * FROM bikes ORDER BY created_at ASC"
+      "SELECT * FROM bikes WHERE isBike=? ORDER BY created_at ASC",
+      [isBike ? 1 : 0],
     );
 
     return rows.map((bike) => ({
@@ -23,9 +24,7 @@ const Bike = {
       // Parse bluebook images
       blueBookImages: (() => {
         try {
-          return bike.blue_book_images
-            ? JSON.parse(bike.blue_book_images)
-            : [];
+          return bike.blue_book_images ? JSON.parse(bike.blue_book_images) : [];
         } catch {
           return [];
         }
@@ -35,10 +34,7 @@ const Bike = {
 
   // Get single bike
   async findById(id) {
-    const [rows] = await pool.query(
-      "SELECT * FROM bikes WHERE id = ?",
-      [id]
-    );
+    const [rows] = await pool.query("SELECT * FROM bikes WHERE id = ?", [id]);
 
     if (rows.length === 0) return null;
 
@@ -62,9 +58,7 @@ const Bike = {
       // Parse bluebook images
       blueBookImages: (() => {
         try {
-          return bike.blue_book_images
-            ? JSON.parse(bike.blue_book_images)
-            : [];
+          return bike.blue_book_images ? JSON.parse(bike.blue_book_images) : [];
         } catch {
           return [];
         }
@@ -94,9 +88,10 @@ const Bike = {
         blue_book_number,
         blue_book_images,
         license_image,
-        qr_code
+        qr_code,
+        isBike
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)
       `,
       [
         data.name,
@@ -117,7 +112,8 @@ const Bike = {
 
         data.licenseImage || "",
         data.qrCode || "",
-      ]
+        data?.isBike === "true" ? true : false,
+      ],
     );
 
     return this.findById(result.insertId);
@@ -162,7 +158,7 @@ const Bike = {
         data.licenseImage || "",
         data.qrCode || "",
         id,
-      ]
+      ],
     );
 
     return this.findById(id);
@@ -170,10 +166,7 @@ const Bike = {
 
   // Delete bike
   async delete(id) {
-    const [result] = await pool.query(
-      "DELETE FROM bikes WHERE id = ?",
-      [id]
-    );
+    const [result] = await pool.query("DELETE FROM bikes WHERE id = ?", [id]);
 
     return result.affectedRows > 0;
   },

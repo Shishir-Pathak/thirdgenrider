@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS bikes (
     blue_book_images JSON,
     license_image TEXT,
     qr_code TEXT,
+    isBike BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ON UPDATE CURRENT_TIMESTAMP

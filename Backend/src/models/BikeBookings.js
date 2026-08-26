@@ -1,12 +1,10 @@
 import { pool } from "../config/db.js";
 
 const BikeBooking = {
-
-	// Get all bike bookings
-	async findAll() {
-
-		const [rows] = await pool.query(
-			`
+  // Get all bike bookings
+  async findAll() {
+    const [rows] = await pool.query(
+      `
 			SELECT 
 				bb.*,
 				b.name AS bike_name
@@ -14,20 +12,16 @@ const BikeBooking = {
 			LEFT JOIN bikes b 
 				ON bb.bike_id = b.id
 			ORDER BY bb.created_at DESC
-			`
-		);
+			`,
+    );
 
-		return rows;
+    return rows;
+  },
 
-	},
-
-
-
-	// Get booking by ID
-	async findById(id) {
-
-		const [rows] = await pool.query(
-			`
+  // Get booking by ID
+  async findById(id) {
+    const [rows] = await pool.query(
+      `
 			SELECT 
 				bb.*,
 				b.name AS bike_name
@@ -36,22 +30,16 @@ const BikeBooking = {
 				ON bb.bike_id = b.id
 			WHERE bb.id = ?
 			`,
-			[id]
-		);
+      [id],
+    );
 
+    return rows.length ? rows[0] : null;
+  },
 
-		return rows.length ? rows[0] : null;
-
-	},
-
-
-
-
-	// Create booking
-	async create(data) {
-
-		const [result] = await pool.query(
-			`
+  // Create booking
+  async create(data) {
+    const [result] = await pool.query(
+      `
 			INSERT INTO bike_bookings
 			(
 				bike_id,
@@ -66,32 +54,26 @@ const BikeBooking = {
 			)
 			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 			`,
-			[
-				data.bike,
-				data.customerName,
-				data.customerEmail,
-				data.customerPhone,
-				data.pickupDate,
-				data.returnDate,
-				data.pickupLocation,
-				data.returnLocation,
-				data.message || "",
-			]
-		);
+      [
+        data.bike,
+        data.customerName,
+        data.customerEmail,
+        data.customerPhone,
+        data.pickupDate,
+        data.returnDate,
+        data.pickupLocation,
+        data.returnLocation,
+        data.message || "",
+      ],
+    );
 
+    return this.findById(result.insertId);
+  },
 
-		return this.findById(result.insertId);
-
-	},
-
-
-
-
-	// Update booking
-	async update(id, data) {
-
-		await pool.query(
-			`
+  // Update booking
+  async update(id, data) {
+    await pool.query(
+      `
 			UPDATE bike_bookings SET
 
 				bike_id=?,
@@ -107,42 +89,31 @@ const BikeBooking = {
 			WHERE id=?
 
 			`,
-			[
-				data.bike,
-				data.customerName,
-				data.customerEmail,
-				data.customerPhone,
-				data.pickupDate,
-				data.returnDate,
-				data.pickupLocation,
-				data.returnLocation,
-				data.message || "",
-				id
-			]
-		);
+      [
+        data.bike,
+        data.customerName,
+        data.customerEmail,
+        data.customerPhone,
+        data.pickupDate,
+        data.returnDate,
+        data.pickupLocation,
+        data.returnLocation,
+        data.message || "",
+        id,
+      ],
+    );
 
+    return this.findById(id);
+  },
 
-		return this.findById(id);
+  // Delete booking
+  async delete(id) {
+    const [result] = await pool.query("DELETE FROM bike_bookings WHERE id=?", [
+      id,
+    ]);
 
-	},
-
-
-
-
-	// Delete booking
-	async delete(id) {
-
-		const [result] = await pool.query(
-			"DELETE FROM bike_bookings WHERE id=?",
-			[id]
-		);
-
-
-		return result.affectedRows > 0;
-
-	}
-
+    return result.affectedRows > 0;
+  },
 };
-
 
 export default BikeBooking;

@@ -24,7 +24,10 @@ import {
   Maximize,
   Minimize,
   ClipboardList,
+  Car,
 } from "lucide-react";
+
+import AgentButton from "../components/dashboard/AgentButton";
 
 const brandName = "Third Generation Rider Pvt. Ltd.";
 const footerYear = new Date().getFullYear();
@@ -37,6 +40,11 @@ const navSections = [
       { label: "About Page", icon: Info, to: "/dashboard/about" },
       { label: "Service Page", icon: Wrench, to: "/dashboard/service" },
       { label: "Bikes", icon: Bike, to: "/dashboard/bikes" },
+      {
+        label: "Cars",
+        icon: Car,
+        to: "/dashboard/cars",
+      },
       {
         label: "Bike Bookings",
         icon: CalendarDays,
@@ -168,6 +176,7 @@ function AdminLayout() {
               <Menu className="h-5 w-5" />
             </button>
             <div className="flex items-center gap-1 sm:gap-2">
+              <AgentButton />
               <button
                 type="button"
                 className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"

@@ -70,6 +70,7 @@ function validateBikePayload(payload, res) {
 // Body Parser
 // =========================
 function getBikePayload(body) {
+  console.log("body", body);
   return {
     name: body.name?.trim() || "",
     pricePerDay: Number(body.price ?? body.pricePerDay),
@@ -79,6 +80,7 @@ function getBikePayload(body) {
     chassisNumber: body.chassisNumber?.trim() || "",
     engineNumber: body.engineNumber?.trim() || "",
     mileage: Number(body.mileage ?? 0),
+    isBike: body?.isBike || false,
 
     available:
       body.available === undefined
@@ -113,7 +115,8 @@ async function uploadBlueBookImages(req) {
 // =========================
 export const getBikes = async (req, res) => {
   try {
-    const bikes = await Bike.findAll();
+    const isBike = req.query.isBike === "1";
+    const bikes = await Bike.findAll(isBike);
     res.json(bikes.map(toDTO));
   } catch (err) {
     res.status(500).json({
@@ -160,6 +163,7 @@ export const createBike = async (req, res) => {
       licenseImage: await uploadLicenseImage(req),
       blueBookImages,
     });
+    console.log("Creted biek payload", payload);
 
     // Generate QR code
     const qrCode = await generateBikeQrCode(req, bike.id.toString());

@@ -21,6 +21,7 @@ export default function BikeFormModal({
   onSubmit,
   onDeleteLicenseImage,
   onDeleteBlueBookImage,
+  isBike = true,
 }) {
   const isAdd = mode === "add";
   const [blueBookImageFieldCount, setBlueBookImageFieldCount] = useState(1);
@@ -36,7 +37,15 @@ export default function BikeFormModal({
       open={open}
       onClose={onClose}
       titleId="bike-form-title"
-      title={isAdd ? "Add bike" : "Edit bike"}
+      title={
+        isAdd
+          ? isBike
+            ? "Add Bike"
+            : "Add Car"
+          : isBike
+            ? "Edit bike"
+            : "Edit Car"
+      }
       closeDisabled={submitting}
     >
       <form className="mt-4 space-y-4" onSubmit={onSubmit}>
@@ -68,7 +77,7 @@ export default function BikeFormModal({
             className={inputClass}
             value={draft.name}
             onChange={(e) => updateDraft("name", e.target.value)}
-            placeholder="Bike name"
+            placeholder={isBike ? "Bike name" : "Car Name"}
             autoComplete="off"
             required
             disabled={submitting}
@@ -104,7 +113,7 @@ export default function BikeFormModal({
               className={inputClass}
               value={draft.model}
               onChange={(e) => updateDraft("model", e.target.value)}
-              placeholder="Duke 250"
+              placeholder={isBike ? "Duke 250" : "Toyota"}
               required
               disabled={submitting}
             />
@@ -239,7 +248,7 @@ export default function BikeFormModal({
 
         <div>
           <label htmlFor="bike-image" className={labelClass}>
-            Bike Image{" "}
+            {isBike ? "Bike Image" : "Car Image"}{" "}
             {!isAdd && (
               <span className="font-normal text-slate-500">
                 (optional — leave empty to keep current)
@@ -417,7 +426,13 @@ export default function BikeFormModal({
             variant="primary"
             icon={Save}
           >
-            {submitting ? "Saving…" : isAdd ? "Add bike" : "Save changes"}
+            {submitting
+              ? "Saving…"
+              : isAdd
+                ? isBike
+                  ? "Add bike"
+                  : "Add Car"
+                : "Save changes"}
           </DashboardButton>
         </div>
       </form>

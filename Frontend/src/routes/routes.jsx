@@ -1,5 +1,11 @@
 import { useEffect } from "react";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from "react-router";
 import Home from "../pages/Home";
 import About from "../pages/About";
 import Bikes from "../pages/Bikes";
@@ -24,6 +30,8 @@ import DashboardHome from "../pages/DashboardHome";
 import DashboardAbout from "../pages/DashboardAbout";
 import DashboardService from "../pages/DashboardService";
 import DashboardLogin from "../pages/DashboardLogin";
+import DashboardCars from "../pages/DashboardCars";
+import Agent from "../pages/Agent";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -47,7 +55,8 @@ function AppRouter() {
             <Route path="home" element={<DashboardHome />} />
             <Route path="about" element={<DashboardAbout />} />
             <Route path="service" element={<DashboardService />} />
-            <Route path="bikes" element={<DashboardBikes />} />
+            <Route path="bikes" element={<DashboardBikes type="bike" />} />
+            <Route path="cars" element={<DashboardBikes type="car" />} />
             <Route
               path="companyDetails"
               element={<DashboardCompanyDetails />}
@@ -72,6 +81,7 @@ function AppRouter() {
           <Route path="/package" element={<Package />} />
           <Route path="/package/:packageId" element={<PackageDetails />} />
           <Route path="/service" element={<Service />} />
+          <Route path="/agent" element={<Agent />} />
         </Route>
         <Route path="/bike-details/:bikeId" element={<BikeDetails />} />
       </Routes>

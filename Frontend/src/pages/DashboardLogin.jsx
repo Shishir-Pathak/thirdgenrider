@@ -7,8 +7,6 @@ import {
   setDashboardAuthenticated,
 } from "../lib/dashboardAuth";
 
-
-
 export default function DashboardLogin() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -23,46 +21,45 @@ export default function DashboardLogin() {
 
   const fromPath = location.state?.from?.pathname || "/dashboard/home";
 
- const handleSubmit = async (event) => {
-  event.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
 
-  setError("");
+    setError("");
 
-  if (!username.trim() || !password.trim()) {
-    setError("Enter your username and password to continue.");
-    return;
-  }
-
-  setSubmitting(true);
-
-  try {
-    const response = await fetch(apiUrl("/api/admin/login"), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        username,
-        password,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message);
+    if (!username.trim() || !password.trim()) {
+      setError("Enter your username and password to continue.");
+      return;
     }
 
-    setDashboardAuthenticated(true);
+    setSubmitting(true);
 
-    navigate(fromPath, { replace: true });
+    try {
+      const response = await fetch(apiUrl("/api/admin/login"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username,
+          password,
+        }),
+      });
 
-  } catch (err) {
-    setError(err.message || "Login failed.");
-  } finally {
-    setSubmitting(false);
-  }
-};
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message);
+      }
+
+      setDashboardAuthenticated(true);
+
+      navigate(fromPath, { replace: true });
+    } catch (err) {
+      setError(err.message || "Login failed.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
   return (
     <div className="min-h-screen overflow-hidden bg-slate-950 text-white">
       <div className="relative isolate flex min-h-screen items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
