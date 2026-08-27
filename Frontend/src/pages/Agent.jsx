@@ -76,14 +76,12 @@ export default function BecomeAgent() {
     data.append("panFile", formData.panFile);
 
     try {
-      await axios.post(apiUrl("/xyz"), data);
+      await axios.post(apiUrl("/api/agent/register"), data);
 
       console.log("Application submitted successfully");
+      resetForm(event.target);
     } catch (e) {
       console.log(e);
-    } finally {
-      // This clears the form even if the API returns 404.
-      resetForm(event.target);
     }
   };
 

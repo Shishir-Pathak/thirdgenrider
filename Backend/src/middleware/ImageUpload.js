@@ -39,6 +39,16 @@ export const uploadFields = upload.fields([
     maxCount: 10,
   },
 ]);
+export const agentUploadFields = upload.fields([
+  {
+    name: "ctznShipFile",
+    maxCount: 1,
+  },
+  {
+    name: "panFile",
+    maxCount: 1,
+  },
+]);
 
 // Common middleware used in routes
 export const withUpload = (req, res, next) => {
@@ -64,6 +74,32 @@ export const withUpload = (req, res, next) => {
     console.log("MAIN IMAGE:", req.file);
     console.log("ALL FILES:", req.files);
     console.log("BLUEBOOK FILES:", req.files?.blueBookImages);
+
+    next();
+  });
+};
+export const agentUpload = (req, res, next) => {
+  agentUploadFields(req, res, (err) => {
+    if (err) {
+      console.log("UPLOAD ERROR:", err.message);
+
+      return res.status(400).json({
+        message:
+          err.code === "LIMIT_FILE_SIZE"
+            ? "Image must be 5 MB or smaller."
+            : err.message || "Upload failed.",
+      });
+    }
+
+    // Convert image field so controllers can use req.file
+    if (req.files && req.files.image && req.files.image.length > 0) {
+      req.file = req.files.image[0];
+    }
+
+    // Debug checking
+    console.log("MULTER BODY:", req.body);
+    console.log("MAIN IMAGE:", req.file);
+    console.log("ALL FILES:", req.files);
 
     next();
   });

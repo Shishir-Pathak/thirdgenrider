@@ -1,5 +1,3 @@
-// services/user.service.js
-
 import { pool } from "../config/db.js";
 
 const User = {
@@ -9,8 +7,13 @@ const User = {
       SELECT
         id,
         role,
-        name,
+        first_name,
+        last_name,
         email,
+        citizenship_number,
+        pan_number,
+        citizenship_photo,
+        pan_photo,
         created_at,
         updated_at
       FROM users
@@ -27,8 +30,13 @@ const User = {
       SELECT
         id,
         role,
-        name,
+        first_name,
+        last_name,
         email,
+        citizenship_number,
+        pan_number,
+        citizenship_photo,
+        pan_photo,
         created_at,
         updated_at
       FROM users
@@ -63,13 +71,28 @@ const User = {
         INSERT INTO users
         (
           role,
-          name,
+          first_name,
+          last_name,
           email,
-          password
+          password,
+          citizenship_number,
+          pan_number,
+          citizenship_photo,
+          pan_photo
         )
-        VALUES (?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?,?)
         `,
-        [data.role || "none", data.name, data.email, data.password],
+        [
+          data.role || "none",
+          data.firstName,
+          data.lastName,
+          data.email,
+          data.password,
+          data.citizenshipNumber || null,
+          data.panNumber || null,
+          data.citizenshipPhoto || null,
+          data.panPhoto || null,
+        ],
       );
 
       return this.findById(result.insertId);
@@ -90,11 +113,20 @@ const User = {
         UPDATE users
         SET
           role = ?,
-          name = ?,
-          email = ?
+          first_name= ?,
+          last_name=?,
+          email = ?,
+          password=?
         WHERE id = ?
         `,
-        [data.role, data.name, data.email, id],
+        [
+          data.role,
+          data.firstName,
+          data.lastName,
+          data.email,
+          data?.password,
+          id,
+        ],
       );
 
       if (result.affectedRows === 0) {

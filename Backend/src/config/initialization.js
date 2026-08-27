@@ -2,18 +2,27 @@ import { pool } from "./db.js";
 
 export const userInit = async () => {
   return await pool.query(`
-  CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS users (
     id INT UNSIGNED NOT NULL AUTO_INCREMENT,
     role ENUM('none', 'admin', 'superadmin') NOT NULL DEFAULT 'none',
-    name VARCHAR(255) NOT NULL,
+
+    first_name VARCHAR(255) NOT NULL,
+    last_name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
+
+    citizenship_number VARCHAR(100) DEFAULT NULL,
+    pan_number VARCHAR(100) DEFAULT NULL,
+    citizenship_photo VARCHAR(500) DEFAULT NULL,
+    pan_photo VARCHAR(500) DEFAULT NULL,
+
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
       ON UPDATE CURRENT_TIMESTAMP,
 
     PRIMARY KEY (id)
-  );
+);
+
 `);
 };
 
