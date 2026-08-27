@@ -2,13 +2,13 @@ import "dotenv/config";
 import connectDB from "./src/config/db.js";
 import { createApp } from "./src/app.js";
 
-import { userInit } from "./src/config/initialization.js";
+import { initAll } from "./src/config/initialization.js";
 
 async function start() {
   try {
     await connectDB();
-    await userInit();
-    console.log("User Initialized");
+    await initAll();
+    console.log("Database & Tables Initialized");
   } catch (err) {
     console.error(err);
     process.exit(1);

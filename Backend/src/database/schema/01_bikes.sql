@@ -1,5 +1,6 @@
 CREATE TABLE IF NOT EXISTS bikes (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    userId INT DEFAULT NULL,
     name VARCHAR(255) NOT NULL,
     price_per_day DECIMAL(10,2) NOT NULL,
     image TEXT,

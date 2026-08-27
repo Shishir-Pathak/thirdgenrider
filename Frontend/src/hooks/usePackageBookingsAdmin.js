@@ -1,98 +1,94 @@
 import { useCallback, useEffect, useState } from "react";
-import { apiUrl } from "../lib/api";
+import { authFetch } from "../lib/api";
 import { parseApiError } from "../lib/parseApiError";
 
 export function usePackageBookingsAdmin() {
-	const [bookings, setBookings] = useState([]);
-	const [loading, setLoading] = useState(true);
-	const [listError, setListError] = useState("");
-	const [viewTarget, setViewTarget] = useState(null);
-	const [deleteTarget, setDeleteTarget] = useState(null);
-	const [deleteSubmitting, setDeleteSubmitting] = useState(false);
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [listError, setListError] = useState("");
+  const [viewTarget, setViewTarget] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteSubmitting, setDeleteSubmitting] = useState(false);
 
-	const loadBookings = useCallback(async () => {
-		setListError("");
-		setLoading(true);
+  const loadBookings = useCallback(async () => {
+    setListError("");
+    setLoading(true);
 
-		try {
-			const res = await fetch(apiUrl("/api/package-bookings"));
+    try {
+      const res = await authFetch("/api/package-bookings");
 
-			if (!res.ok) {
-				throw new Error(await parseApiError(res));
-			}
+      if (!res.ok) {
+        throw new Error(await parseApiError(res));
+      }
 
-			const data = await res.json();
-			setBookings(Array.isArray(data) ? data : []);
+      const data = await res.json();
+      setBookings(Array.isArray(data) ? data : []);
+    } catch (err) {
+      setListError(err.message || "Failed to load package bookings.");
+      setBookings([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-		} catch (err) {
-			setListError(err.message || "Failed to load package bookings.");
-			setBookings([]);
+  useEffect(() => {
+    loadBookings();
+  }, [loadBookings]);
 
-		} finally {
-			setLoading(false);
-		}
-	}, []);
+  useEffect(() => {
+    if (!viewTarget && !deleteTarget) return;
 
-	useEffect(() => {
-		loadBookings();
-	}, [loadBookings]);
+    const onKey = (e) => {
+      if (e.key !== "Escape") return;
 
-	useEffect(() => {
-		if (!viewTarget && !deleteTarget) return;
+      setViewTarget(null);
+      setDeleteTarget(null);
+    };
 
-		const onKey = (e) => {
-			if (e.key !== "Escape") return;
+    window.addEventListener("keydown", onKey);
 
-			setViewTarget(null);
-			setDeleteTarget(null);
-		};
+    return () => {
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [viewTarget, deleteTarget]);
 
-		window.addEventListener("keydown", onKey);
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
 
-		return () => {
-			window.removeEventListener("keydown", onKey);
-		};
-	}, [viewTarget, deleteTarget]);
+    setDeleteSubmitting(true);
 
-	const confirmDelete = async () => {
-		if (!deleteTarget) return;
+    try {
+      const res = await authFetch(
+        `/api/package-bookings/${deleteTarget.id}`,
+        {
+          method: "DELETE",
+        }
+      );
 
-		setDeleteSubmitting(true);
+      if (!res.ok) {
+        throw new Error(await parseApiError(res));
+      }
 
-		try {
-			const res = await fetch(
-				apiUrl(`/api/package-bookings/${deleteTarget.id}`),
-				{
-					method: "DELETE",
-				}
-			);
+      await loadBookings();
+      setDeleteTarget(null);
+    } catch (err) {
+      setListError(err.message || "Failed to delete package booking.");
+      setDeleteTarget(null);
+    } finally {
+      setDeleteSubmitting(false);
+    }
+  };
 
-			if (!res.ok) {
-				throw new Error(await parseApiError(res));
-			}
-
-			await loadBookings();
-			setDeleteTarget(null);
-
-		} catch (err) {
-			setListError(err.message || "Failed to delete package booking.");
-			setDeleteTarget(null);
-
-		} finally {
-			setDeleteSubmitting(false);
-		}
-	};
-
-	return {
-		bookings,
-		loading,
-		listError,
-		loadBookings,
-		viewTarget,
-		setViewTarget,
-		deleteTarget,
-		setDeleteTarget,
-		deleteSubmitting,
-		confirmDelete,
-	};
+  return {
+    bookings,
+    loading,
+    listError,
+    loadBookings,
+    viewTarget,
+    setViewTarget,
+    deleteTarget,
+    setDeleteTarget,
+    deleteSubmitting,
+    confirmDelete,
+  };
 }

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { apiUrl } from "../lib/api";
+import { authFetch, apiUrl } from "../lib/api";
 import { focusFirstFormError, validateMinText } from "../lib/formValidation";
 import { parseApiError } from "../lib/parseApiError";
 import { mergeSiteContent } from "../lib/siteContentDefaults";
@@ -302,7 +302,7 @@ export function useSiteContentAdmin() {
 			for (const [field, file] of Object.entries(files)) {
 				if (file) fd.append(field, file);
 			}
-			const res = await fetch(apiUrl("/api/site-content"), {
+			const res = await authFetch("/api/site-content", {
 				method: "PUT",
 				body: fd,
 			});

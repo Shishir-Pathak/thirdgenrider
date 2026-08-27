@@ -1,15 +1,57 @@
 import { pool } from "../config/db.js";
 
 const Bike = {
-  // Get all bikes
-  async findAll(isBike = true) {
-    const [rows] = await pool.query(
-      "SELECT * FROM bikes WHERE isBike=? ORDER BY created_at ASC",
-      [isBike ? 1 : 0],
-    );
+  // Get all bikes / cars
+  async findAll({ isBike, userId } = {}) {
+    const conditions = [];
+    const params = [];
+
+    if (isBike !== undefined && isBike !== null) {
+      conditions.push("b.isBike = ?");
+      params.push(isBike ? 1 : 0);
+    }
+
+    if (userId !== undefined && userId !== null) {
+      conditions.push("b.userId = ?");
+      params.push(userId);
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+
+    const query = `
+      SELECT
+        b.*,
+        u.first_name,
+        u.last_name,
+        u.business_name,
+        (
+          SELECT COUNT(*)
+          FROM bike_bookings bb
+          WHERE bb.bike_id = b.id
+            AND bb.pickup_date <= CURDATE()
+            AND bb.return_date >= CURDATE()
+        ) AS current_active_bookings,
+        (
+          SELECT COUNT(*)
+          FROM bike_bookings bb
+          WHERE bb.bike_id = b.id
+        ) AS total_bookings_count
+      FROM bikes b
+      LEFT JOIN users u ON b.userId = u.id
+      ${whereClause}
+      ORDER BY b.created_at DESC
+    `;
+
+    const [rows] = await pool.query(query, params);
 
     return rows.map((bike) => ({
       ...bike,
+      userId: bike.userId,
+      ownerName: bike.business_name || (bike.first_name ? `${bike.first_name} ${bike.last_name || ""}`.trim() : "Admin"),
+      ownerBusiness: bike.business_name || "",
+      isBooked: Number(bike.current_active_bookings || 0) > 0 || !bike.available,
+      activeBookingsCount: Number(bike.current_active_bookings || 0),
+      totalBookingsCount: Number(bike.total_bookings_count || 0),
 
       // CamelCase mappings
       pricePerDay: Number(bike.price_per_day),
@@ -34,16 +76,44 @@ const Bike = {
 
   // Get single bike
   async findById(id) {
-    const [rows] = await pool.query("SELECT * FROM bikes WHERE id = ?", [id]);
+    const [rows] = await pool.query(
+      `
+      SELECT
+        b.*,
+        u.first_name,
+        u.last_name,
+        u.business_name,
+        (
+          SELECT COUNT(*)
+          FROM bike_bookings bb
+          WHERE bb.bike_id = b.id
+            AND bb.pickup_date <= CURDATE()
+            AND bb.return_date >= CURDATE()
+        ) AS current_active_bookings,
+        (
+          SELECT COUNT(*)
+          FROM bike_bookings bb
+          WHERE bb.bike_id = b.id
+        ) AS total_bookings_count
+      FROM bikes b
+      LEFT JOIN users u ON b.userId = u.id
+      WHERE b.id = ?
+      `,
+      [id],
+    );
 
     if (rows.length === 0) return null;
 
     const bike = rows[0];
 
-    console.log("DB blue_book_images:", bike.blue_book_images);
-
     return {
       ...bike,
+      userId: bike.userId,
+      ownerName: bike.business_name || (bike.first_name ? `${bike.first_name} ${bike.last_name || ""}`.trim() : "Admin"),
+      ownerBusiness: bike.business_name || "",
+      isBooked: Number(bike.current_active_bookings || 0) > 0 || !bike.available,
+      activeBookingsCount: Number(bike.current_active_bookings || 0),
+      totalBookingsCount: Number(bike.total_bookings_count || 0),
 
       // CamelCase mappings
       pricePerDay: Number(bike.price_per_day),
@@ -68,12 +138,11 @@ const Bike = {
 
   // Create bike
   async create(data) {
-    console.log("MODEL RECEIVED blueBookImages:", data.blueBookImages);
-
     const [result] = await pool.query(
       `
       INSERT INTO bikes
       (
+        userId,
         name,
         price_per_day,
         image,
@@ -91,9 +160,10 @@ const Bike = {
         qr_code,
         isBike
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
+        data.userId || null,
         data.name,
         data.pricePerDay,
         data.image || "",
@@ -103,16 +173,13 @@ const Bike = {
         data.chassisNumber || "",
         data.engineNumber || "",
         data.mileage || 0,
-        data.available ?? true,
+        data.available === undefined ? 1 : data.available ? 1 : 0,
         data.engineCapacity || 0,
         data.blueBookNumber || "",
-
-        // IMPORTANT
         JSON.stringify(data.blueBookImages ?? []),
-
         data.licenseImage || "",
         data.qrCode || "",
-        data?.isBike === "true" ? true : false,
+        data.isBike === "true" || data.isBike === true ? 1 : 0,
       ],
     );
 
@@ -138,7 +205,8 @@ const Bike = {
         blue_book_number=?,
         blue_book_images=?,
         license_image=?,
-        qr_code=?
+        qr_code=?,
+        isBike=?
       WHERE id=?
       `,
       [
@@ -151,12 +219,13 @@ const Bike = {
         data.chassisNumber || "",
         data.engineNumber || "",
         data.mileage || 0,
-        data.available ?? true,
+        data.available === undefined ? 1 : data.available ? 1 : 0,
         data.engineCapacity || 0,
         data.blueBookNumber || "",
         JSON.stringify(data.blueBookImages ?? []),
         data.licenseImage || "",
         data.qrCode || "",
+        data.isBike === "true" || data.isBike === true || data.isBike === 1 ? 1 : 0,
         id,
       ],
     );
@@ -164,10 +233,20 @@ const Bike = {
     return this.findById(id);
   },
 
+  // Quick toggle availability (List / Delist)
+  async updateAvailability(id, available) {
+    await pool.query("UPDATE bikes SET available = ? WHERE id = ?", [
+      available ? 1 : 0,
+      id,
+    ]);
+    return this.findById(id);
+  },
+
   // Delete bike
   async delete(id) {
+    // Delete bookings first
+    await pool.query("DELETE FROM bike_bookings WHERE bike_id = ?", [id]);
     const [result] = await pool.query("DELETE FROM bikes WHERE id = ?", [id]);
-
     return result.affectedRows > 0;
   },
 };

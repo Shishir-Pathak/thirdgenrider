@@ -10,8 +10,12 @@ function toDTO(o) {
 
   return {
     id: o.id,
+    userId: o.userId ?? null,
+    ownerName: o.ownerName || "Admin",
+    ownerBusiness: o.ownerBusiness || "",
     name: o.name,
     price: Number(o.pricePerDay || o.price_per_day || 0).toFixed(2),
+    pricePerDay: Number(o.pricePerDay || o.price_per_day || 0),
     image: o.image || "",
     model: o.model || "",
     color: o.color || "",
@@ -22,6 +26,10 @@ function toDTO(o) {
 
     mileage: o.mileage ?? 0,
     available: Boolean(o.available),
+    isBooked: Boolean(o.isBooked),
+    activeBookingsCount: Number(o.activeBookingsCount || 0),
+    totalBookingsCount: Number(o.totalBookingsCount || 0),
+    isBike: Boolean(o.isBike),
 
     engineCapacity: o.engineCapacity ?? o.engine_capacity ?? 0,
 
@@ -70,7 +78,6 @@ function validateBikePayload(payload, res) {
 // Body Parser
 // =========================
 function getBikePayload(body) {
-  console.log("body", body);
   return {
     name: body.name?.trim() || "",
     pricePerDay: Number(body.price ?? body.pricePerDay),
@@ -80,12 +87,12 @@ function getBikePayload(body) {
     chassisNumber: body.chassisNumber?.trim() || "",
     engineNumber: body.engineNumber?.trim() || "",
     mileage: Number(body.mileage ?? 0),
-    isBike: body?.isBike || false,
+    isBike: body?.isBike === "true" || body?.isBike === true || body?.isBike === "1" || body?.isBike === 1,
 
     available:
       body.available === undefined
         ? undefined
-        : body.available === "true" || body.available === true,
+        : body.available === "true" || body.available === true || body.available === "1" || body.available === 1,
 
     engineCapacity: Number(body.engineCapacity ?? 0),
     blueBookNumber: body.blueBookNumber?.trim() || "",
@@ -115,10 +122,31 @@ async function uploadBlueBookImages(req) {
 // =========================
 export const getBikes = async (req, res) => {
   try {
-    const isBike = req.query.isBike === "1";
-    const bikes = await Bike.findAll(isBike);
+    const isBikeParam = req.query.isBike !== undefined
+      ? req.query.isBike === "1" || req.query.isBike === "true"
+      : undefined;
+
+    // Check if filtering by own vehicles (e.g. for agent dashboard)
+    let userIdFilter = undefined;
+    if (req.query.mine === "1" || req.query.mine === "true") {
+      if (req.user && req.user.role !== "superadmin") {
+        userIdFilter = req.user.id;
+      }
+    } else if (req.user && (req.user.role === "agent" || req.user.role === "admin") && req.query.all !== "1") {
+      // If agent is authenticated and accessing admin view without public flag
+      if (req.headers.authorization && req.query.public !== "1") {
+        userIdFilter = req.user.id;
+      }
+    }
+
+    const bikes = await Bike.findAll({
+      isBike: isBikeParam,
+      userId: userIdFilter,
+    });
+
     res.json(bikes.map(toDTO));
   } catch (err) {
+    console.error("Get Bikes Error:", err);
     res.status(500).json({
       message: err.message || "Failed to retrieve bikes.",
     });
@@ -156,17 +184,28 @@ export const createBike = async (req, res) => {
     // Upload bluebook images
     const blueBookImages = await uploadBlueBookImages(req);
 
+    // Determine ownership userId
+    const userId =
+      req.user && req.user.role !== "superadmin"
+        ? req.user.id
+        : req.body.userId || null;
+
     // Create bike
     const bike = await Bike.create({
       ...payload,
+      userId,
       image: req.file?.buffer ? await uploadImageBuffer(req.file.buffer) : "",
       licenseImage: await uploadLicenseImage(req),
       blueBookImages,
     });
-    console.log("Creted biek payload", payload);
 
     // Generate QR code
-    const qrCode = await generateBikeQrCode(req, bike.id.toString());
+    let qrCode = "";
+    try {
+      qrCode = await generateBikeQrCode(req, bike.id.toString());
+    } catch (qrErr) {
+      console.warn("QR code generation warning:", qrErr.message);
+    }
 
     // Update bike with QR code
     const updatedBike = await Bike.update(bike.id, {
@@ -177,6 +216,7 @@ export const createBike = async (req, res) => {
 
     res.status(201).json(toDTO(updatedBike));
   } catch (err) {
+    console.error("Create Bike Error:", err);
     res.status(500).json({
       message: err.message || "Failed to create bike.",
     });
@@ -192,6 +232,17 @@ export const updateBike = async (req, res) => {
 
     if (!oldBike) {
       return res.status(404).json({ message: "Bike not found." });
+    }
+
+    // Access control: If not superadmin, verify agent owns this bike
+    if (
+      req.user &&
+      req.user.role !== "superadmin" &&
+      String(oldBike.userId) !== String(req.user.id)
+    ) {
+      return res.status(403).json({
+        message: "Forbidden: You are only authorized to modify your own vehicles.",
+      });
     }
 
     const updates = {};
@@ -237,12 +288,50 @@ export const updateBike = async (req, res) => {
       ...oldBike,
       ...updates,
     });
-    console.log(updated, "updated\n");
 
     res.json(toDTO(updated));
   } catch (err) {
+    console.error("Update Bike Error:", err);
     res.status(500).json({
       message: err.message || "Failed to update bike.",
+    });
+  }
+};
+
+// =========================
+// TOGGLE AVAILABILITY (LIST / DELIST)
+// =========================
+export const toggleBikeAvailability = async (req, res) => {
+  try {
+    const bike = await Bike.findById(req.params.id);
+
+    if (!bike) {
+      return res.status(404).json({ message: "Bike not found." });
+    }
+
+    // Access control: If not superadmin, verify agent owns this bike
+    if (
+      req.user &&
+      req.user.role !== "superadmin" &&
+      String(bike.userId) !== String(req.user.id)
+    ) {
+      return res.status(403).json({
+        message: "Forbidden: You are only authorized to modify your own vehicles.",
+      });
+    }
+
+    const nextAvailable =
+      req.body.available !== undefined
+        ? Boolean(req.body.available)
+        : !bike.available;
+
+    const updated = await Bike.updateAvailability(req.params.id, nextAvailable);
+
+    res.json(toDTO(updated));
+  } catch (err) {
+    console.error("Toggle Availability Error:", err);
+    res.status(500).json({
+      message: err.message || "Failed to update vehicle availability.",
     });
   }
 };
@@ -256,6 +345,16 @@ export const deleteBikeLicenseImage = async (req, res) => {
 
     if (!bike) {
       return res.status(404).json({ message: "Bike not found." });
+    }
+
+    if (
+      req.user &&
+      req.user.role !== "superadmin" &&
+      String(bike.userId) !== String(req.user.id)
+    ) {
+      return res.status(403).json({
+        message: "Forbidden: You are only authorized to modify your own vehicles.",
+      });
     }
 
     const updated = await Bike.update(req.params.id, {
@@ -280,6 +379,16 @@ export const deleteBikeBlueBookImage = async (req, res) => {
 
     if (!bike) {
       return res.status(404).json({ message: "Bike not found." });
+    }
+
+    if (
+      req.user &&
+      req.user.role !== "superadmin" &&
+      String(bike.userId) !== String(req.user.id)
+    ) {
+      return res.status(403).json({
+        message: "Forbidden: You are only authorized to modify your own vehicles.",
+      });
     }
 
     const index = Number(req.params.imageIndex);
@@ -320,6 +429,23 @@ export const deleteBikeBlueBookImage = async (req, res) => {
 // =========================
 export const deleteBike = async (req, res) => {
   try {
+    const bike = await Bike.findById(req.params.id);
+
+    if (!bike) {
+      return res.status(404).json({ message: "Bike not found." });
+    }
+
+    // Access control: If not superadmin, verify agent owns this bike
+    if (
+      req.user &&
+      req.user.role !== "superadmin" &&
+      String(bike.userId) !== String(req.user.id)
+    ) {
+      return res.status(403).json({
+        message: "Forbidden: You are only authorized to delete your own vehicles.",
+      });
+    }
+
     const deleted = await Bike.delete(req.params.id);
 
     if (!deleted) {

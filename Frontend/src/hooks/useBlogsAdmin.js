@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { apiUrl } from "../lib/api";
+import { authFetch, apiUrl } from "../lib/api";
 import {
 	focusFirstFormError,
 	isValidSlug,
@@ -199,9 +199,9 @@ export function useBlogsAdmin() {
 		try {
 			const url =
 				formModal.mode === "add"
-					? apiUrl("/api/blogs")
-					: apiUrl(`/api/blogs/${formModal.blog.id}`);
-			const res = await fetch(url, {
+					? "/api/blogs"
+					: `/api/blogs/${formModal.blog.id}`;
+			const res = await authFetch(url, {
 				method: formModal.mode === "add" ? "POST" : "PUT",
 				body: fd,
 			});
@@ -219,7 +219,7 @@ export function useBlogsAdmin() {
 		if (!deleteTarget) return;
 		setDeleteSubmitting(true);
 		try {
-			const res = await fetch(apiUrl(`/api/blogs/${deleteTarget.id}`), {
+			const res = await authFetch(`/api/blogs/${deleteTarget.id}`, {
 				method: "DELETE",
 			});
 			if (!res.ok) throw new Error(await parseApiError(res));

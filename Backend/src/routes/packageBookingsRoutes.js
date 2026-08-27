@@ -1,14 +1,20 @@
 import express from "express";
 import {
-	createPackageBooking,
-	deletePackageBooking,
-	getPackageBookings,
+  createPackageBooking,
+  deletePackageBooking,
+  getPackageBookings,
 } from "../controller/packageBookingController.js";
+import authMiddleware from "../middleware/authmiddleware.js";
 
 const router = express.Router();
 
-router.get("/", getPackageBookings);
+// Superadmin only
+router.get("/", authMiddleware(["superadmin"]), getPackageBookings);
+
+// Public booking creation
 router.post("/", createPackageBooking);
-router.delete("/:id", deletePackageBooking);
+
+// Superadmin only
+router.delete("/:id", authMiddleware(["superadmin"]), deletePackageBooking);
 
 export default router;

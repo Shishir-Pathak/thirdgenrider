@@ -115,18 +115,18 @@ function withSiteContentUpload(req, res, next) {
 
 
 
+import authMiddleware from "../middleware/authmiddleware.js";
+
 // Get complete site content
 router.get(
 	"/",
 	getSiteContent
 );
 
-
-
-
-// Update complete site content
+// Update complete site content (Superadmin only)
 router.put(
 	"/",
+	authMiddleware(["superadmin"]),
 	withSiteContentUpload,
 	updateSiteContent
 );

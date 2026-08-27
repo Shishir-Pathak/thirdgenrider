@@ -59,6 +59,7 @@ const DashboardBikes = ({ type = "bike" }) => {
         loading={bikesAdmin.loading}
         onEdit={bikesAdmin.openEdit}
         onDelete={bikesAdmin.setDeleteTarget}
+        onToggleAvailability={bikesAdmin.toggleAvailability}
       />
 
       <BikeFormModal

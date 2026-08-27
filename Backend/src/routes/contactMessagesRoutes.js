@@ -1,14 +1,20 @@
 import express from "express";
 import {
-	createContactMessage,
-	deleteContactMessage,
-	getContactMessages,
+  createContactMessage,
+  deleteContactMessage,
+  getContactMessages,
 } from "../controller/contactMessageController.js";
+import authMiddleware from "../middleware/authmiddleware.js";
 
 const router = express.Router();
 
-router.get("/", getContactMessages);
+// Superadmin only
+router.get("/", authMiddleware(["superadmin"]), getContactMessages);
+
+// Public contact submission
 router.post("/", createContactMessage);
-router.delete("/:id", deleteContactMessage);
+
+// Superadmin only
+router.delete("/:id", authMiddleware(["superadmin"]), deleteContactMessage);
 
 export default router;

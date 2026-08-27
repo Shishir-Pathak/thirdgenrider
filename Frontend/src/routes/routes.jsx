@@ -20,6 +20,7 @@ import MainLayout from "../layouts/MainLayout";
 import AdminLayout from "../layouts/AdminLayout";
 import DashboardAuthGate from "../components/dashboard/DashboardAuthGate";
 import DashboardBikes from "../pages/DashboardBikes";
+import DashboardCars from "../pages/DashboardCars";
 import DashboardCompanyDetails from "../pages/DashboardCompanyDetails";
 import DashboardPackages from "../pages/DashboardPackages";
 import DashboardBikeBookings from "../pages/DashboardBikeBookings";
@@ -30,8 +31,9 @@ import DashboardHome from "../pages/DashboardHome";
 import DashboardAbout from "../pages/DashboardAbout";
 import DashboardService from "../pages/DashboardService";
 import DashboardLogin from "../pages/DashboardLogin";
-import DashboardCars from "../pages/DashboardCars";
+import DashboardAgents from "../pages/DashboardAgents";
 import Agent from "../pages/Agent";
+import { getAuthUser, isSuperAdmin } from "../lib/dashboardAuth";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -43,6 +45,11 @@ function ScrollToTop() {
   return null;
 }
 
+function DashboardIndexRedirect() {
+  const superAdmin = isSuperAdmin();
+  return <Navigate to={superAdmin ? "home" : "bikes"} replace />;
+}
+
 function AppRouter() {
   return (
     <BrowserRouter>
@@ -51,12 +58,14 @@ function AppRouter() {
         <Route path="/dashboard/login" element={<DashboardLogin />} />
         <Route element={<DashboardAuthGate />}>
           <Route path="/dashboard" element={<AdminLayout />}>
-            <Route index element={<Navigate to="home" replace />} />
+            <Route index element={<DashboardIndexRedirect />} />
             <Route path="home" element={<DashboardHome />} />
             <Route path="about" element={<DashboardAbout />} />
             <Route path="service" element={<DashboardService />} />
             <Route path="bikes" element={<DashboardBikes type="bike" />} />
-            <Route path="cars" element={<DashboardBikes type="car" />} />
+            <Route path="cars" element={<DashboardCars />} />
+            <Route path="agents" element={<DashboardAgents />} />
+            <Route path="agent" element={<DashboardAgents />} />
             <Route
               path="companyDetails"
               element={<DashboardCompanyDetails />}

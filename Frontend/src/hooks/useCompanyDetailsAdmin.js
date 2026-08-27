@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { apiUrl } from "../lib/api";
+import { authFetch, apiUrl } from "../lib/api";
 import {
 	focusFirstFormError,
 	validateImageFile,
@@ -167,9 +167,9 @@ export function useCompanyDetailsAdmin() {
 		try {
 			const isAdd = formModal.mode === "add";
 			const url = isAdd
-				? apiUrl("/api/company-details")
-				: apiUrl(`/api/company-details/${formModal.details.id}`);
-			const res = await fetch(url, {
+				? "/api/company-details"
+				: `/api/company-details/${formModal.details.id}`;
+			const res = await authFetch(url, {
 				method: isAdd ? "POST" : "PUT",
 				body: fd,
 			});
@@ -187,7 +187,7 @@ export function useCompanyDetailsAdmin() {
 		if (!deleteTarget) return;
 		setDeleteSubmitting(true);
 		try {
-			const res = await fetch(apiUrl(`/api/company-details/${deleteTarget.id}`), {
+			const res = await authFetch(`/api/company-details/${deleteTarget.id}`, {
 				method: "DELETE",
 			});
 			if (!res.ok) throw new Error(await parseApiError(res));

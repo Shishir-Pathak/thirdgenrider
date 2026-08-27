@@ -4,15 +4,33 @@ import DashboardHeader from "../components/dashboard/DashboardHeader";
 import DeleteBikeModal from "../components/dashboard/DeleteBikeModal";
 import ListErrorBanner from "../components/dashboard/ListErrorBanner";
 import { useBikesAdmin } from "../hooks/useBikesAdmin";
+import { Link } from "react-router";
+import { Bike, Car } from "lucide-react";
 
 const DashboardCars = () => {
-  const bikesAdmin = useBikesAdmin();
+  const bikesAdmin = useBikesAdmin(false);
 
   return (
     <>
       <DashboardHeader
-        title="Cars"
-        addLabel="+ Add Cars"
+        title={
+          <div className="flex gap-2">
+            <Link
+              to="/dashboard/bikes"
+              className="hover:text-[var(--color-primary)] duration-75 transition-all ease"
+            >
+              <Bike />
+            </Link>{" "}
+            |{" "}
+            <Link
+              to="/dashboard/cars"
+              className="text-[var(--color-primary)]"
+            >
+              <Car />
+            </Link>
+          </div>
+        }
+        addLabel="+ Add Car"
         onAdd={bikesAdmin.openAdd}
       />
 
@@ -30,6 +48,7 @@ const DashboardCars = () => {
         loading={bikesAdmin.loading}
         onEdit={bikesAdmin.openEdit}
         onDelete={bikesAdmin.setDeleteTarget}
+        onToggleAvailability={bikesAdmin.toggleAvailability}
       />
 
       <BikeFormModal
@@ -49,6 +68,7 @@ const DashboardCars = () => {
         onSubmit={bikesAdmin.submitForm}
         onDeleteLicenseImage={bikesAdmin.deleteLicenseImage}
         onDeleteBlueBookImage={bikesAdmin.deleteBlueBookImage}
+        isBike={false}
       />
 
       <DeleteBikeModal

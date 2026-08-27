@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { apiUrl } from "../lib/api";
+import { authFetch } from "../lib/api";
 import { focusFirstFormError, validateImageFile } from "../lib/formValidation";
 import { parseApiError } from "../lib/parseApiError";
 
@@ -22,7 +22,7 @@ export function emptyBikeDraft() {
 export function bikeToDraft(bike) {
   return {
     name: bike.name,
-    price: String(bike.price),
+    price: String(bike.price || bike.pricePerDay || ""),
     model: bike.model || "",
     color: bike.color || "",
     plateNumber: bike.plateNumber || "",
@@ -67,11 +67,11 @@ export function useBikesAdmin(isBike = true) {
     setListError("");
     setLoading(true);
     try {
-      const res = await fetch(apiUrl(`/api/bikes?isBike=${isBike ? 1 : 0}`));
+      const res = await authFetch(`/api/bikes?isBike=${isBike ? 1 : 0}`);
       if (!res.ok) throw new Error(await parseApiError(res));
       setBikes(await res.json());
     } catch (err) {
-      setListError(err.message || "Failed to load bikes.");
+      setListError(err.message || "Failed to load vehicles.");
       setBikes([]);
     } finally {
       setLoading(false);
@@ -80,7 +80,7 @@ export function useBikesAdmin(isBike = true) {
 
   useEffect(() => {
     loadBikes();
-  }, [isBike]);
+  }, [loadBikes]);
 
   useEffect(() => {
     if (!formModal) return;
@@ -142,6 +142,22 @@ export function useBikesAdmin(isBike = true) {
     );
   };
 
+  // Toggle vehicle availability (List / Delist)
+  const toggleAvailability = async (bike) => {
+    try {
+      const res = await authFetch(`/api/bikes/${bike.id}/availability`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ available: !bike.available }),
+      });
+      if (!res.ok) throw new Error(await parseApiError(res));
+      const updated = await res.json();
+      await applyUpdatedBike(updated);
+    } catch (err) {
+      setListError(err.message || "Failed to toggle vehicle listing status.");
+    }
+  };
+
   const deleteLicenseImage = async (targetBike = formModal?.bike) => {
     const bike = targetBike;
     if (!bike?.licenseImage) return;
@@ -150,7 +166,7 @@ export function useBikesAdmin(isBike = true) {
     setImageDeleteSubmitting(`${bike.id}-license`);
     setImageDeleteError("");
     try {
-      const res = await fetch(apiUrl(`/api/bikes/${bike.id}/license-image`), {
+      const res = await authFetch(`/api/bikes/${bike.id}/license-image`, {
         method: "DELETE",
       });
       if (!res.ok) throw new Error(await parseApiError(res));
@@ -170,8 +186,8 @@ export function useBikesAdmin(isBike = true) {
     setImageDeleteSubmitting(`${bike.id}-bluebook-${index}`);
     setImageDeleteError("");
     try {
-      const res = await fetch(
-        apiUrl(`/api/bikes/${bike.id}/bluebook-images/${index}`),
+      const res = await authFetch(
+        `/api/bikes/${bike.id}/bluebook-images/${index}`,
         { method: "DELETE" },
       );
       if (!res.ok) throw new Error(await parseApiError(res));
@@ -207,7 +223,7 @@ export function useBikesAdmin(isBike = true) {
       validateNonNegativeNumber(draft.mileage, "mileage") ||
       validateNonNegativeNumber(draft.engineCapacity, "engine capacity") ||
       validateImageFile(file, {
-        label: "Bike image",
+        label: "Vehicle image",
         required: formModal.mode === "add",
       }) ||
       validateImageFile(licenseFile, { label: "License image" }) ||
@@ -236,7 +252,7 @@ export function useBikesAdmin(isBike = true) {
     fd.append("available", String(Boolean(draft.available)));
     fd.append("engineCapacity", String(engineCapacityNum));
     fd.append("blueBookNumber", draft.blueBookNumber.trim());
-    fd.append("isBike", isBike);
+    fd.append("isBike", String(isBike));
     if (file) fd.append("image", file);
     if (licenseFile) fd.append("licenseImage", licenseFile);
     for (const blueBookFile of blueBookFiles) {
@@ -248,9 +264,9 @@ export function useBikesAdmin(isBike = true) {
     try {
       const url =
         formModal.mode === "add"
-          ? apiUrl("/api/bikes")
-          : apiUrl(`/api/bikes/${formModal.bike.id}`);
-      const res = await fetch(url, {
+          ? "/api/bikes"
+          : `/api/bikes/${formModal.bike.id}`;
+      const res = await authFetch(url, {
         method: formModal.mode === "add" ? "POST" : "PUT",
         body: fd,
       });
@@ -268,14 +284,14 @@ export function useBikesAdmin(isBike = true) {
     if (!deleteTarget) return;
     setDeleteSubmitting(true);
     try {
-      const res = await fetch(apiUrl(`/api/bikes/${deleteTarget.id}`), {
+      const res = await authFetch(`/api/bikes/${deleteTarget.id}`, {
         method: "DELETE",
       });
       if (!res.ok) throw new Error(await parseApiError(res));
       await loadBikes();
       setDeleteTarget(null);
     } catch (err) {
-      setListError(err.message || "Failed to delete bike.");
+      setListError(err.message || "Failed to delete vehicle.");
       setDeleteTarget(null);
     } finally {
       setDeleteSubmitting(false);
@@ -304,6 +320,7 @@ export function useBikesAdmin(isBike = true) {
     openEdit,
     closeForm,
     submitForm,
+    toggleAvailability,
     deleteLicenseImage,
     deleteBlueBookImage,
     confirmDelete,
