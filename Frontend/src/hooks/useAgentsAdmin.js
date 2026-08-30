@@ -74,6 +74,24 @@ export function useAgentsAdmin() {
     }
   };
 
+  const createAgentDirectly = async (payload) => {
+    setActionSubmitting(true);
+    try {
+      const res = await authFetch("/api/agent/admin-create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error(await parseApiError(res));
+      await loadAgents();
+      return true;
+    } catch (err) {
+      throw err;
+    } finally {
+      setActionSubmitting(false);
+    }
+  };
+
   return {
     agents,
     stats,
@@ -87,5 +105,6 @@ export function useAgentsAdmin() {
     actionSubmitting,
     updateAgentStatus,
     confirmDelete,
+    createAgentDirectly,
   };
 }

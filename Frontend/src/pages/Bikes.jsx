@@ -1,20 +1,16 @@
 import React from "react";
-import TopSection from "../components/TopSection";
 import VechileCategories from "../components/VechileCategories";
 import ProcessSection from "../components/ProcessSection";
 
 const Bikes = () => {
-	const topSectionData = {
-		title: "Our Bikes",
-		breadcrumb: "Home / Pages / Bikes",
-	};
 	return (
 		<div>
-			<section className="bg-gray-100">
-				{/* <TopSection data = {topSectionData} /> */}
-			</section>
 			<section>
-				<VechileCategories />
+				<VechileCategories
+					initialCategory="bikes"
+					title="Our Motorbikes & Scooters Fleet"
+					subtitle="Rent high-performance motorbikes, dirt bikes, and city scooters for mountain trails and daily rides across Nepal."
+				/>
 			</section>
 			<section>
 				<ProcessSection />

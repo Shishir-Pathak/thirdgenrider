@@ -9,6 +9,7 @@ import {
 import Home from "../pages/Home";
 import About from "../pages/About";
 import Bikes from "../pages/Bikes";
+import Cars from "../pages/Cars";
 import BikeDetails from "../pages/BikeDetails";
 import Blog from "../pages/Blog";
 import BlogDetails from "../pages/BlogDetails";
@@ -84,6 +85,7 @@ function AppRouter() {
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/bikes" element={<Bikes />} />
+          <Route path="/cars" element={<Cars />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:blogSlug" element={<BlogDetails />} />
           <Route path="/contact" element={<Contact />} />
@@ -93,6 +95,7 @@ function AppRouter() {
           <Route path="/agent" element={<Agent />} />
         </Route>
         <Route path="/bike-details/:bikeId" element={<BikeDetails />} />
+        <Route path="/car-details/:bikeId" element={<BikeDetails />} />
       </Routes>
     </BrowserRouter>
   );

@@ -9,6 +9,7 @@ const navItems = [
   { label: "Home", to: "/" },
   { label: "About", to: "/about" },
   { label: "Bikes", to: "/bikes" },
+  { label: "Cars", to: "/cars" },
   { label: "Package", to: "/package" },
   { label: "Service", to: "/service" },
   { label: "Blog", to: "/blog" },
@@ -20,20 +21,21 @@ const Navbar = () => {
   const { openBookingForm } = useBooking();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const brandName = details?.name || "Third Generation Rider Pvt. Ltd.";
+  const logoUrl = details?.logo || "/ThirdGenRider.png";
 
   const closeMobileMenu = () => setMobileMenuOpen(false);
 
   return (
     <nav className="w-full border-b border-slate-200 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
-{/* Logo */}
-<Link to="/" className="flex min-w-0 items-center gap-3">
-  <img
-    src="/ThirdGenRider.png"
-    alt="ThirdGenRider logo"
-    className="h-14 w-auto shrink-0"
-  />
-</Link>
+        {/* Logo */}
+        <Link to="/" className="flex min-w-0 items-center gap-3">
+          <img
+            src={logoUrl}
+            alt={brandName}
+            className="h-14 w-auto shrink-0 max-w-[200px] object-contain"
+          />
+        </Link>
 
         {/* Nav Links */}
         <ul className="hidden lg:flex items-center gap-8 xl:gap-10 text-[16px] xl:text-[18px] font-medium">

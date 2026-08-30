@@ -22,8 +22,17 @@ agentRoute.post("/login", agentLogin);
 // Superadmin-only endpoints
 agentRoute.get("/stats", authMiddleware(["superadmin"]), getAgentStats);
 agentRoute.get("/", authMiddleware(["superadmin"]), getAllAgent);
-agentRoute.patch("/:id/status", authMiddleware(["superadmin"]), updateAgentStatus);
-agentRoute.put("/:id/status", authMiddleware(["superadmin"]), updateAgentStatus);
+
+agentRoute.patch(
+  "/:id/status",
+  authMiddleware(["superadmin"]),
+  updateAgentStatus,
+);
+agentRoute.put(
+  "/:id/status",
+  authMiddleware(["superadmin"]),
+  updateAgentStatus,
+);
 agentRoute.put("/:id", authMiddleware(["superadmin"]), updateAgent);
 agentRoute.delete("/:id", authMiddleware(["superadmin"]), deleteAgent);
 

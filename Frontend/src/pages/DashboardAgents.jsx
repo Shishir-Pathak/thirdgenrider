@@ -3,6 +3,7 @@ import { useAgentsAdmin } from "../hooks/useAgentsAdmin";
 import AgentsTable from "../components/dashboard/AgentsTable";
 import AgentDetailsModal from "../components/dashboard/AgentDetailsModal";
 import DeleteAgentModal from "../components/dashboard/DeleteAgentModal";
+import AddAgentModal from "../components/dashboard/AddAgentModal";
 import ListErrorBanner from "../components/dashboard/ListErrorBanner";
 import {
   Users,
@@ -11,6 +12,7 @@ import {
   XCircle,
   Search,
   RefreshCw,
+  UserPlus,
 } from "lucide-react";
 
 export default function DashboardAgents() {
@@ -27,10 +29,12 @@ export default function DashboardAgents() {
     actionSubmitting,
     updateAgentStatus,
     confirmDelete,
+    createAgentDirectly,
   } = useAgentsAdmin();
 
   const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const filteredAgents = useMemo(() => {
     return agents.filter((agent) => {
@@ -64,14 +68,24 @@ export default function DashboardAgents() {
           </p>
         </div>
 
-        <button
-          onClick={loadAgents}
-          disabled={loading}
-          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
-        >
-          <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
-          Refresh
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-xl bg-[var(--color-primary)] px-4 py-2 text-xs font-semibold text-white shadow-md transition hover:bg-[var(--color-primary-dark)]"
+          >
+            <UserPlus className="h-4 w-4" />
+            Add Admin / Vendor
+          </button>
+
+          <button
+            onClick={loadAgents}
+            disabled={loading}
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
+            Refresh
+          </button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -237,6 +251,14 @@ export default function DashboardAgents() {
         submitting={actionSubmitting}
         onCancel={() => setDeleteTarget(null)}
         onConfirm={confirmDelete}
+      />
+
+      {/* Add Agent / Admin Modal */}
+      <AddAgentModal
+        open={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSubmit={createAgentDirectly}
+        submitting={actionSubmitting}
       />
     </div>
   );

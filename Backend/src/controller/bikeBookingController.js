@@ -14,6 +14,8 @@ function toDTO(o) {
       ? `${o.owner_first_name} ${o.owner_last_name || ""}`.trim()
       : "Admin");
 
+  const isBike = o.is_bike !== undefined ? Boolean(o.is_bike) : o.isBike !== undefined ? Boolean(o.isBike) : true;
+
   return {
     id: o.id,
     bike: o.bike_id
@@ -23,12 +25,15 @@ function toDTO(o) {
           image: o.bike_image || "",
           ownerId: o.bike_owner_id || null,
           ownerName,
+          isBike,
         }
       : null,
 
     bikeId: o.bike_id,
     bikeName: o.bike_name || "",
     bikeImage: o.bike_image || "",
+    isBike,
+    vehicleType: isBike ? "Bike" : "Car",
     bikeOwnerId: o.bike_owner_id || null,
     ownerName,
     ownerBusiness: o.owner_business_name || "",
@@ -152,13 +157,13 @@ export const createBikeBooking = async (req, res) => {
     }
 
     const booking = await BikeBooking.create(data);
-    const response = toDTO(booking);
+    const response = toDTO({ ...booking, is_bike: bike.isBike });
 
     res.status(201).json(response);
 
     sendBookingConfirmationEmail({
-      bookingType: "Bike Rental",
-      itemName: bike.name || "Bike",
+      bookingType: bike.isBike ? "Bike Rental" : "Car Rental",
+      itemName: bike.name || (bike.isBike ? "Bike" : "Car"),
       customerEmail: booking.customer_email,
       customerName: booking.customer_name,
       customerPhone: booking.customer_phone,

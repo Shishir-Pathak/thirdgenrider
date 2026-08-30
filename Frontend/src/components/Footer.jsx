@@ -25,6 +25,7 @@ const Footer = () => {
     ["Home", "/"],
     ["About", "/about"],
     ["Bikes", "/bikes"],
+    ["Cars", "/cars"],
     ["Packages", "/package"],
     ["Blog", "/blog"],
     ["Contact", "/contact"],
