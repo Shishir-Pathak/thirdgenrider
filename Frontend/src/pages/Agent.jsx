@@ -12,6 +12,7 @@ import {
 import AgentFile from "../components/agent/agentFileUpload";
 import axios from "axios";
 import { apiUrl } from "../lib/api";
+import { toast } from "react-toastify";
 
 const initialFormData = {
   businessName: "",
@@ -30,6 +31,7 @@ export default function BecomeAgent() {
   const [formData, setFormData] = useState(initialFormData);
   const [showPassword, setShowPassword] = useState(false);
   const [fileResetKey, setFileResetKey] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -41,16 +43,9 @@ export default function BecomeAgent() {
   };
 
   const resetForm = (form) => {
-    // Reset all React state
     setFormData(initialFormData);
-
-    // Reset native form inputs
     form.reset();
-
-    // Reset password visibility
     setShowPassword(false);
-
-    // Tell AgentFile components to clear themselves
     setFileResetKey((prev) => prev + 1);
   };
 
@@ -58,7 +53,7 @@ export default function BecomeAgent() {
     event.preventDefault();
 
     if (!(formData.ctznShipFile && formData.panFile)) {
-      return alert("Incomplete Photo Upload");
+      return toast.error("Incomplete files upload");
     }
 
     const data = new FormData();
@@ -75,13 +70,18 @@ export default function BecomeAgent() {
     data.append("ctznShipFile", formData.ctznShipFile);
     data.append("panFile", formData.panFile);
 
+    setIsLoading(true);
+    toast("Submitting");
     try {
       await axios.post(apiUrl("/api/agent/register"), data);
 
-      console.log("Application submitted successfully");
+      toast.success("Login Successfully");
       resetForm(event.target);
     } catch (e) {
       console.log(e);
+
+      toast.error(e?.response?.data?.message || "Error in login");
+      setIsLoading(false);
     }
   };
 
@@ -93,16 +93,13 @@ export default function BecomeAgent() {
   return (
     <div className="min-h-screen overflow-hidden bg-slate-950 text-white">
       <div className="relative isolate min-h-screen px-4 py-8 sm:px-6 lg:px-8">
-        {/* Background */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(222,135,60,0.18),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(14,165,233,0.12),transparent_26%),linear-gradient(135deg,#08111f_0%,#0f1724_45%,#111827_100%)]" />
 
         <div className="absolute -left-32 -top-32 h-72 w-72 rounded-full bg-[#de873c]/10 blur-3xl" />
 
         <div className="absolute -bottom-32 -right-32 h-80 w-80 rounded-full bg-sky-400/10 blur-3xl" />
 
-        {/* Main Card */}
         <div className="relative mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-7xl overflow-hidden rounded-4xl border border-white/10 bg-slate-900/90 shadow-2xl shadow-black/30 backdrop-blur-xl lg:grid-cols-[0.95fr_1.05fr]">
-          {/* LEFT */}
           <div className="relative flex flex-col overflow-hidden border-b border-white/10 p-7 sm:p-10 lg:border-b-0 lg:border-r lg:p-12">
             <div className="pointer-events-none absolute left-1/2 top-[38%] h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#de873c]/10 blur-3xl" />
 
@@ -167,7 +164,6 @@ export default function BecomeAgent() {
             </div>
           </div>
 
-          {/* RIGHT */}
           <div className="p-6 sm:p-10 lg:p-12 xl:p-14">
             <div className="mx-auto max-w-2xl">
               <div className="mb-8">
@@ -186,240 +182,244 @@ export default function BecomeAgent() {
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-7">
-                {/* Business Information */}
-                <section>
-                  <div className="mb-5 flex items-center gap-2 border-b border-white/10 pb-3">
-                    <Building2 className="h-4 w-4 text-[#de873c]" />
+                <fieldset disabled={isLoading} className="space-y-7">
+                  <section>
+                    <div className="mb-5 flex items-center gap-2 border-b border-white/10 pb-3">
+                      <Building2 className="h-4 w-4 text-[#de873c]" />
 
-                    <h3 className="text-sm font-semibold text-slate-200">
-                      Business Information
-                    </h3>
-                  </div>
+                      <h3 className="text-sm font-semibold text-slate-200">
+                        Business Information
+                      </h3>
+                    </div>
 
-                  <label className="block">
-                    <span className={labelClass}>
-                      Business Name <span className="text-[#de873c]">*</span>
-                    </span>
+                    <label className="block">
+                      <span className={labelClass}>
+                        Business Name <span className="text-[#de873c]">*</span>
+                      </span>
 
-                    <input
-                      name="businessName"
-                      type="text"
-                      placeholder="Enter your business name"
-                      value={formData.businessName}
-                      onChange={handleChange}
-                      required
-                      className={inputClass}
+                      <input
+                        name="businessName"
+                        type="text"
+                        placeholder="Enter your business name"
+                        value={formData.businessName}
+                        onChange={handleChange}
+                        required
+                        className={inputClass}
+                        disabled={isLoading}
+                      />
+                    </label>
+                  </section>
+
+                  <section>
+                    <div className="mb-5 flex items-center gap-2 border-b border-white/10 pb-3">
+                      <User className="h-4 w-4 text-[#de873c]" />
+
+                      <h3 className="text-sm font-semibold text-slate-200">
+                        Personal Information
+                      </h3>
+                    </div>
+
+                    <div className="grid gap-5 sm:grid-cols-2">
+                      <label className="block">
+                        <span className={labelClass}>
+                          First Name <span className="text-[#de873c]">*</span>
+                        </span>
+
+                        <input
+                          name="firstName"
+                          type="text"
+                          placeholder="First name"
+                          value={formData.firstName}
+                          onChange={handleChange}
+                          required
+                          className={inputClass}
+                          disabled={isLoading}
+                        />
+                      </label>
+
+                      <label className="block">
+                        <span className={labelClass}>
+                          Last Name <span className="text-[#de873c]">*</span>
+                        </span>
+
+                        <input
+                          name="lastName"
+                          type="text"
+                          placeholder="Last name"
+                          value={formData.lastName}
+                          onChange={handleChange}
+                          required
+                          className={inputClass}
+                          disabled={isLoading}
+                        />
+                      </label>
+                    </div>
+
+                    <label className="mt-5 block">
+                      <span className={labelClass}>
+                        Email Address <span className="text-[#de873c]">*</span>
+                      </span>
+
+                      <div className="relative">
+                        <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+
+                        <input
+                          name="email"
+                          type="email"
+                          placeholder="you@example.com"
+                          value={formData.email}
+                          onChange={handleChange}
+                          required
+                          autoComplete="email"
+                          className={`${inputClass} pl-11`}
+                          disabled={isLoading}
+                        />
+                      </div>
+                    </label>
+
+                    <label className="mt-5 block">
+                      <span className={labelClass}>
+                        Password <span className="text-[#de873c]">*</span>
+                      </span>
+
+                      <div className="relative">
+                        <LockKeyhole className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+
+                        <input
+                          name="password"
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Create a password"
+                          value={formData.password}
+                          onChange={handleChange}
+                          minLength={8}
+                          required
+                          autoComplete="new-password"
+                          className={`${inputClass} pl-11 pr-12`}
+                          disabled={isLoading}
+                        />
+
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword((prev) => !prev)}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 transition hover:text-[#de873c]"
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
+
+                      <span className="mt-1.5 block text-xs text-slate-500">
+                        Password must be at least 8 characters.
+                      </span>
+                    </label>
+                  </section>
+
+                  <section>
+                    <div className="mb-5 flex items-center gap-2 border-b border-white/10 pb-3">
+                      <FileText className="h-4 w-4 text-[#de873c]" />
+
+                      <h3 className="text-sm font-semibold text-slate-200">
+                        Identification Details
+                      </h3>
+                    </div>
+
+                    <div className="grid gap-5 sm:grid-cols-2">
+                      <label className="block">
+                        <span className={labelClass}>
+                          PAN Number <span className="text-[#de873c]">*</span>
+                        </span>
+
+                        <input
+                          name="panNumber"
+                          type="text"
+                          placeholder="Enter PAN number"
+                          value={formData.panNumber}
+                          onChange={handleChange}
+                          required
+                          className={`${inputClass} uppercase`}
+                          disabled={isLoading}
+                        />
+                      </label>
+
+                      <label className="block">
+                        <span className={labelClass}>
+                          Citizenship Number{" "}
+                          <span className="text-[#de873c]">*</span>
+                        </span>
+
+                        <input
+                          name="citizenshipNumber"
+                          type="text"
+                          placeholder="Enter citizenship number"
+                          value={formData.citizenshipNumber}
+                          onChange={handleChange}
+                          required
+                          className={inputClass}
+                          disabled={isLoading}
+                        />
+                      </label>
+                    </div>
+
+                    <AgentFile
+                      label="Citizenship photo"
+                      setFormData={setFormData}
+                      name="ctznShipFile"
+                      resetKey={fileResetKey}
                     />
-                  </label>
-                </section>
 
-                {/* Personal Information */}
-                <section>
-                  <div className="mb-5 flex items-center gap-2 border-b border-white/10 pb-3">
-                    <User className="h-4 w-4 text-[#de873c]" />
+                    <AgentFile
+                      label="Pan Document"
+                      setFormData={setFormData}
+                      name="panFile"
+                      resetKey={fileResetKey}
+                    />
+                  </section>
 
-                    <h3 className="text-sm font-semibold text-slate-200">
-                      Personal Information
-                    </h3>
-                  </div>
+                  <section>
+                    <div className="mb-5 flex items-center gap-2 border-b border-white/10 pb-3">
+                      <FileText className="h-4 w-4 text-[#de873c]" />
 
-                  <div className="grid gap-5 sm:grid-cols-2">
-                    <label className="block">
-                      <span className={labelClass}>
-                        First Name <span className="text-[#de873c]">*</span>
-                      </span>
-
-                      <input
-                        name="firstName"
-                        type="text"
-                        placeholder="First name"
-                        value={formData.firstName}
-                        onChange={handleChange}
-                        required
-                        className={inputClass}
-                      />
-                    </label>
-
-                    <label className="block">
-                      <span className={labelClass}>
-                        Last Name <span className="text-[#de873c]">*</span>
-                      </span>
-
-                      <input
-                        name="lastName"
-                        type="text"
-                        placeholder="Last name"
-                        value={formData.lastName}
-                        onChange={handleChange}
-                        required
-                        className={inputClass}
-                      />
-                    </label>
-                  </div>
-
-                  <label className="mt-5 block">
-                    <span className={labelClass}>
-                      Email Address <span className="text-[#de873c]">*</span>
-                    </span>
-
-                    <div className="relative">
-                      <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-
-                      <input
-                        name="email"
-                        type="email"
-                        placeholder="you@example.com"
-                        value={formData.email}
-                        onChange={handleChange}
-                        required
-                        autoComplete="email"
-                        className={`${inputClass} pl-11`}
-                      />
-                    </div>
-                  </label>
-
-                  {/* Password */}
-                  <label className="mt-5 block">
-                    <span className={labelClass}>
-                      Password <span className="text-[#de873c]">*</span>
-                    </span>
-
-                    <div className="relative">
-                      <LockKeyhole className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-
-                      <input
-                        name="password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Create a password"
-                        value={formData.password}
-                        onChange={handleChange}
-                        minLength={8}
-                        required
-                        autoComplete="new-password"
-                        className={`${inputClass} pl-11 pr-12`}
-                      />
-
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword((prev) => !prev)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 transition hover:text-[#de873c]"
-                      >
-                        {showPassword ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
-                      </button>
+                      <h3 className="text-sm font-semibold text-slate-200">
+                        About Your Business
+                      </h3>
                     </div>
 
-                    <span className="mt-1.5 block text-xs text-slate-500">
-                      Password must be at least 8 characters.
-                    </span>
-                  </label>
-                </section>
-
-                {/* Identification */}
-                <section>
-                  <div className="mb-5 flex items-center gap-2 border-b border-white/10 pb-3">
-                    <FileText className="h-4 w-4 text-[#de873c]" />
-
-                    <h3 className="text-sm font-semibold text-slate-200">
-                      Identification Details
-                    </h3>
-                  </div>
-
-                  <div className="grid gap-5 sm:grid-cols-2">
                     <label className="block">
                       <span className={labelClass}>
-                        PAN Number <span className="text-[#de873c]">*</span>
-                      </span>
-
-                      <input
-                        name="panNumber"
-                        type="text"
-                        placeholder="Enter PAN number"
-                        value={formData.panNumber}
-                        onChange={handleChange}
-                        required
-                        className={`${inputClass} uppercase`}
-                      />
-                    </label>
-
-                    <label className="block">
-                      <span className={labelClass}>
-                        Citizenship Number{" "}
+                        Business Description{" "}
                         <span className="text-[#de873c]">*</span>
                       </span>
 
-                      <input
-                        name="citizenshipNumber"
-                        type="text"
-                        placeholder="Enter citizenship number"
-                        value={formData.citizenshipNumber}
+                      <textarea
+                        name="description"
+                        rows={5}
+                        placeholder="Tell us about your business, experience, and why you want to become an agent..."
+                        value={formData.description}
                         onChange={handleChange}
                         required
-                        className={inputClass}
+                        className={`${inputClass} resize-y`}
+                        disabled={isLoading}
                       />
                     </label>
+                  </section>
+
+                  <div className="pt-1">
+                    <button
+                      type="submit"
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#de873c] px-4 py-3.5 text-sm font-semibold text-slate-950 shadow-lg shadow-[#de873c]/10 transition hover:bg-[#c97532] focus:outline-none focus:ring-3 focus:ring-[#de873c]/50 focus:ring-offset-2 focus:ring-offset-slate-900 active:scale-[0.99]"
+                    >
+                      {isLoading ? "Submitting..." : "Submit Application"}
+                      {!isLoading && <ArrowRight className="h-4 w-4" />}
+                    </button>
+
+                    <p className="mt-3 text-center text-xs text-slate-500">
+                      <span className="text-[#de873c]">*</span> Required fields
+                    </p>
                   </div>
-
-                  <AgentFile
-                    label="Citizenship photo"
-                    setFormData={setFormData}
-                    name="ctznShipFile"
-                    resetKey={fileResetKey}
-                  />
-
-                  <AgentFile
-                    label="Pan Document"
-                    setFormData={setFormData}
-                    name="panFile"
-                    resetKey={fileResetKey}
-                  />
-                </section>
-
-                {/* Description */}
-                <section>
-                  <div className="mb-5 flex items-center gap-2 border-b border-white/10 pb-3">
-                    <FileText className="h-4 w-4 text-[#de873c]" />
-
-                    <h3 className="text-sm font-semibold text-slate-200">
-                      About Your Business
-                    </h3>
-                  </div>
-
-                  <label className="block">
-                    <span className={labelClass}>
-                      Business Description{" "}
-                      <span className="text-[#de873c]">*</span>
-                    </span>
-
-                    <textarea
-                      name="description"
-                      rows={5}
-                      placeholder="Tell us about your business, experience, and why you want to become an agent..."
-                      value={formData.description}
-                      onChange={handleChange}
-                      required
-                      className={`${inputClass} resize-y`}
-                    />
-                  </label>
-                </section>
-
-                {/* Submit */}
-                <div className="pt-1">
-                  <button
-                    type="submit"
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#de873c] px-4 py-3.5 text-sm font-semibold text-slate-950 shadow-lg shadow-[#de873c]/10 transition hover:bg-[#c97532] focus:outline-none focus:ring-3 focus:ring-[#de873c]/50 focus:ring-offset-2 focus:ring-offset-slate-900 active:scale-[0.99]"
-                  >
-                    Submit Application
-                    <ArrowRight className="h-4 w-4" />
-                  </button>
-
-                  <p className="mt-3 text-center text-xs text-slate-500">
-                    <span className="text-[#de873c]">*</span> Required fields
-                  </p>
-                </div>
+                </fieldset>
               </form>
             </div>
           </div>

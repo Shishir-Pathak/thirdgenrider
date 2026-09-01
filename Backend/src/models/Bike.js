@@ -16,7 +16,8 @@ const Bike = {
       params.push(userId);
     }
 
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+    const whereClause =
+      conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
     const query = `
       SELECT
@@ -47,9 +48,14 @@ const Bike = {
     return rows.map((bike) => ({
       ...bike,
       userId: bike.userId,
-      ownerName: bike.business_name || (bike.first_name ? `${bike.first_name} ${bike.last_name || ""}`.trim() : "Admin"),
+      ownerName:
+        bike.business_name ||
+        (bike.first_name
+          ? `${bike.first_name} ${bike.last_name || ""}`.trim()
+          : "Admin"),
       ownerBusiness: bike.business_name || "",
-      isBooked: Number(bike.current_active_bookings || 0) > 0 || !bike.available,
+      isBooked:
+        Number(bike.current_active_bookings || 0) > 0 || !bike.available,
       activeBookingsCount: Number(bike.current_active_bookings || 0),
       totalBookingsCount: Number(bike.total_bookings_count || 0),
 
@@ -61,7 +67,6 @@ const Bike = {
       engineNumber: bike.engine_number || "",
       blueBookNumber: bike.blue_book_number || "",
       licenseImage: bike.license_image || "",
-      qrCode: bike.qr_code || "",
 
       // Parse bluebook images
       blueBookImages: (() => {
@@ -109,9 +114,14 @@ const Bike = {
     return {
       ...bike,
       userId: bike.userId,
-      ownerName: bike.business_name || (bike.first_name ? `${bike.first_name} ${bike.last_name || ""}`.trim() : "Admin"),
+      ownerName:
+        bike.business_name ||
+        (bike.first_name
+          ? `${bike.first_name} ${bike.last_name || ""}`.trim()
+          : "Admin"),
       ownerBusiness: bike.business_name || "",
-      isBooked: Number(bike.current_active_bookings || 0) > 0 || !bike.available,
+      isBooked:
+        Number(bike.current_active_bookings || 0) > 0 || !bike.available,
       activeBookingsCount: Number(bike.current_active_bookings || 0),
       totalBookingsCount: Number(bike.total_bookings_count || 0),
 
@@ -123,7 +133,6 @@ const Bike = {
       engineNumber: bike.engine_number || "",
       blueBookNumber: bike.blue_book_number || "",
       licenseImage: bike.license_image || "",
-      qrCode: bike.qr_code || "",
 
       // Parse bluebook images
       blueBookImages: (() => {
@@ -157,10 +166,10 @@ const Bike = {
         blue_book_number,
         blue_book_images,
         license_image,
-        qr_code,
+      
         isBike
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,  ?)
       `,
       [
         data.userId || null,
@@ -178,7 +187,7 @@ const Bike = {
         data.blueBookNumber || "",
         JSON.stringify(data.blueBookImages ?? []),
         data.licenseImage || "",
-        data.qrCode || "",
+
         data.isBike === "true" || data.isBike === true ? 1 : 0,
       ],
     );
@@ -205,7 +214,7 @@ const Bike = {
         blue_book_number=?,
         blue_book_images=?,
         license_image=?,
-        qr_code=?,
+  
         isBike=?
       WHERE id=?
       `,
@@ -224,8 +233,9 @@ const Bike = {
         data.blueBookNumber || "",
         JSON.stringify(data.blueBookImages ?? []),
         data.licenseImage || "",
-        data.qrCode || "",
-        data.isBike === "true" || data.isBike === true || data.isBike === 1 ? 1 : 0,
+        data.isBike === "true" || data.isBike === true || data.isBike === 1
+          ? 1
+          : 0,
         id,
       ],
     );

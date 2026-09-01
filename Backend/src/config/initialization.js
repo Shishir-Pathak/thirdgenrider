@@ -63,7 +63,7 @@ export const bikeInit = async () => {
       blue_book_number VARCHAR(100) DEFAULT '',
       blue_book_images LONGTEXT DEFAULT NULL,
       license_image VARCHAR(500) DEFAULT '',
-      qr_code VARCHAR(500) DEFAULT '',
+    
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       isBike TINYINT(1) DEFAULT 1,
@@ -390,61 +390,60 @@ export const packagesInit = async () => {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS packages (
       id INT AUTO_INCREMENT PRIMARY KEY,
+
       title VARCHAR(255) NOT NULL,
       description TEXT,
-      price DECIMAL(10,2) NOT NULL,
-      duration VARCHAR(100),
+
       location VARCHAR(255),
+      duration VARCHAR(100),
+
+      group_size INT,
+      price DECIMAL(10,2),
+
+      itinerary JSON,
+      trip_highlights JSON,
+      inclusions JSON,
+
+      package_experience TEXT,
       image TEXT,
+
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP
     );
   `);
+};
 
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS package_itinerary (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      package_id INT NOT NULL,
-      day_number INT,
-      title VARCHAR(255),
-      description TEXT,
-      FOREIGN KEY (package_id) REFERENCES packages(id) ON DELETE CASCADE
-    );
-  `);
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS package_highlights (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      package_id INT NOT NULL,
-      highlight TEXT,
-      FOREIGN KEY (package_id) REFERENCES packages(id) ON DELETE CASCADE
-    );
-  `);
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS package_inclusions (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      package_id INT NOT NULL,
-      inclusion TEXT,
-      is_included BOOLEAN DEFAULT TRUE,
-      FOREIGN KEY (package_id) REFERENCES packages(id) ON DELETE CASCADE
-    );
-  `);
-
+export const packageBookingsInit = async () => {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS package_bookings (
       id INT AUTO_INCREMENT PRIMARY KEY,
+
       package_id INT NOT NULL,
+
       customer_name VARCHAR(255) NOT NULL,
       customer_email VARCHAR(255) NOT NULL,
       customer_phone VARCHAR(50) NOT NULL,
-      travel_date DATE NOT NULL,
+
       num_people INT DEFAULT 1,
+
+      pickup_date DATE NOT NULL,
+      return_date DATE NOT NULL,
+
+      pickup_location VARCHAR(255) NOT NULL,
+      return_location VARCHAR(255) NOT NULL,
+
       message TEXT,
+
       status VARCHAR(50) DEFAULT 'confirmed',
+
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-      FOREIGN KEY (package_id) REFERENCES packages(id) ON DELETE CASCADE
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+      FOREIGN KEY (package_id)
+        REFERENCES packages(id)
+        ON DELETE CASCADE
     );
   `);
 };
@@ -500,4 +499,5 @@ export const initAll = async () => {
   await packagesInit();
   await blogsInit();
   await contactMessagesInit();
+  await packageBookingsInit();
 };

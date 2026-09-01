@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { authFetch } from "../lib/api";
 import { focusFirstFormError, validateImageFile } from "../lib/formValidation";
 import { parseApiError } from "../lib/parseApiError";
-
+import { toast } from "react-toastify";
 export function emptyBikeDraft() {
   return {
     name: "",
@@ -273,8 +273,16 @@ export function useBikesAdmin(isBike = true) {
       if (!res.ok) throw new Error(await parseApiError(res));
       await loadBikes();
       closeForm();
+      toast.success(
+        res?.data?.message || res?.message || "Submitted Successfully",
+      );
     } catch (err) {
-      setFormError(err.message || "Something went wrong.");
+      setFormError(
+        err?.response?.data?.message || err.message || "Something went wrong.",
+      );
+      toast.error(
+        err?.response?.data?.message || err.message || "Something went wrong.",
+      );
     } finally {
       setFormSubmitting(false);
     }
@@ -290,6 +298,7 @@ export function useBikesAdmin(isBike = true) {
       if (!res.ok) throw new Error(await parseApiError(res));
       await loadBikes();
       setDeleteTarget(null);
+      toast.success("Deleted Succesfully");
     } catch (err) {
       setListError(err.message || "Failed to delete vehicle.");
       setDeleteTarget(null);
