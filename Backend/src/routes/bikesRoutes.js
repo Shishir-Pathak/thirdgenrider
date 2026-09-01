@@ -7,6 +7,7 @@ import {
   deleteBike,
   deleteBikeLicenseImage,
   deleteBikeBlueBookImage,
+  deleteBikeTakenImage,
   getBikeById,
 } from "../controller/bikeController.js";
 import { withUpload } from "../middleware/ImageUpload.js";
@@ -47,6 +48,12 @@ router.delete(
   "/:id/bluebook-images/:imageIndex",
   authMiddleware(["agent", "admin", "superadmin"]),
   deleteBikeBlueBookImage,
+);
+
+router.delete(
+  "/:id/taken-images/:imageIndex",
+  authMiddleware(["agent", "admin", "superadmin"]),
+  deleteBikeTakenImage,
 );
 
 router.delete(

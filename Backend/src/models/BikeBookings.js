@@ -1,14 +1,29 @@
 import { pool } from "../config/db.js";
 
 const BikeBooking = {
-  // Get all bike bookings (optionally filtered by owner userId)
-  async findAll(userId = null) {
+  // Get all bike bookings (optionally filtered by owner userId and isBike)
+  async findAll(options = {}) {
+    let userId = null;
+    let isBike = undefined;
+
+    if (typeof options === "object" && options !== null) {
+      userId = options.userId ?? null;
+      isBike = options.isBike;
+    } else {
+      userId = options;
+    }
+
     const conditions = [];
     const params = [];
 
     if (userId !== null && userId !== undefined) {
       conditions.push("b.userId = ?");
       params.push(userId);
+    }
+
+    if (isBike !== undefined && isBike !== null) {
+      conditions.push("b.isBike = ?");
+      params.push(isBike ? 1 : 0);
     }
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";

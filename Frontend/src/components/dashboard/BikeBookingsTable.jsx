@@ -28,6 +28,7 @@ export default function BikeBookingsTable({
 	loading,
 	onView,
 	onDelete,
+	vehicleType = "Bike",
 }) {
 	return (
 		<div className="mt-6 rounded-lg bg-white p-4 shadow-sm dark:bg-slate-900">
@@ -39,7 +40,7 @@ export default function BikeBookingsTable({
 								SN
 							</th>
 							<th className="border border-slate-200 px-4 py-3 font-semibold dark:border-slate-700">
-								Bike
+								{vehicleType}
 							</th>
 							<th className="border border-slate-200 px-4 py-3 font-semibold dark:border-slate-700">
 								Full Name
@@ -80,7 +81,7 @@ export default function BikeBookingsTable({
 									colSpan={12}
 									className="border border-slate-200 px-4 py-10 text-center text-slate-500 dark:border-slate-700 dark:text-slate-400"
 								>
-									Loading bookings...
+									Loading {vehicleType.toLowerCase()} bookings...
 								</td>
 							</tr>
 						) : bookings.length === 0 ? (
@@ -89,7 +90,7 @@ export default function BikeBookingsTable({
 									colSpan={12}
 									className="border border-slate-200 px-4 py-10 text-center text-slate-500 dark:border-slate-700 dark:text-slate-400"
 								>
-									No bike bookings yet.
+									No {vehicleType.toLowerCase()} bookings yet.
 								</td>
 							</tr>
 						) : (

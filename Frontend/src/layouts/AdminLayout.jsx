@@ -80,6 +80,7 @@ function AdminLayout() {
         { label: "All Bikes", icon: Bike, to: "/dashboard/bikes" },
         { label: "All Cars", icon: Car, to: "/dashboard/cars" },
         { label: "Bike Bookings", icon: CalendarDays, to: "/dashboard/bikeBookings" },
+        { label: "Car Bookings", icon: Car, to: "/dashboard/carBookings" },
         { label: "Packages", icon: Package, to: "/dashboard/packages" },
         { label: "Package Bookings", icon: ClipboardList, to: "/dashboard/packageBookings" },
         { label: "Contact Messages", icon: Mail, to: "/dashboard/contact" },
@@ -100,6 +101,7 @@ function AdminLayout() {
         { label: "My Bikes", icon: Bike, to: "/dashboard/bikes" },
         { label: "My Cars", icon: Car, to: "/dashboard/cars" },
         { label: "My Bike Bookings", icon: CalendarDays, to: "/dashboard/bikeBookings" },
+        { label: "My Car Bookings", icon: Car, to: "/dashboard/carBookings" },
       ],
     },
   ];

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { authFetch } from "../lib/api";
 import { parseApiError } from "../lib/parseApiError";
 
-export function useBikeBookingsAdmin() {
+export function useBikeBookingsAdmin(isBike = undefined) {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [listError, setListError] = useState("");
@@ -15,7 +15,11 @@ export function useBikeBookingsAdmin() {
     setLoading(true);
 
     try {
-      const res = await authFetch("/api/bike-bookings");
+      const url =
+        isBike !== undefined
+          ? `/api/bike-bookings?isBike=${isBike ? 1 : 0}`
+          : "/api/bike-bookings";
+      const res = await authFetch(url);
 
       if (!res.ok) {
         throw new Error(await parseApiError(res));
@@ -24,12 +28,15 @@ export function useBikeBookingsAdmin() {
       const data = await res.json();
       setBookings(Array.isArray(data) ? data : []);
     } catch (err) {
-      setListError(err.message || "Failed to load bike bookings.");
+      setListError(
+        err.message ||
+          `Failed to load ${isBike === false ? "car" : isBike === true ? "bike" : ""} bookings.`
+      );
       setBookings([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isBike]);
 
   useEffect(() => {
     loadBookings();

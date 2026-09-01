@@ -48,6 +48,19 @@ function toDTO(o) {
               }
             })(),
 
+    takenImages:
+      Array.isArray(o.takenImages) && o.takenImages.length > 0
+        ? o.takenImages
+        : Array.isArray(o.taken_images)
+          ? o.taken_images
+          : (() => {
+              try {
+                return o.taken_images ? JSON.parse(o.taken_images) : [];
+              } catch {
+                return [];
+              }
+            })(),
+
     licenseImage: o.licenseImage || o.license_image || "",
 
     qrCode: o.qrCode || o.qr_code || "",
@@ -87,12 +100,19 @@ function getBikePayload(body) {
     chassisNumber: body.chassisNumber?.trim() || "",
     engineNumber: body.engineNumber?.trim() || "",
     mileage: Number(body.mileage ?? 0),
-    isBike: body?.isBike === "true" || body?.isBike === true || body?.isBike === "1" || body?.isBike === 1,
+    isBike:
+      body?.isBike === "true" ||
+      body?.isBike === true ||
+      body?.isBike === "1" ||
+      body?.isBike === 1,
 
     available:
       body.available === undefined
         ? undefined
-        : body.available === "true" || body.available === true || body.available === "1" || body.available === 1,
+        : body.available === "true" ||
+          body.available === true ||
+          body.available === "1" ||
+          body.available === 1,
 
     engineCapacity: Number(body.engineCapacity ?? 0),
     blueBookNumber: body.blueBookNumber?.trim() || "",
@@ -117,14 +137,25 @@ async function uploadBlueBookImages(req) {
   return uploaded;
 }
 
+async function uploadTakenImages(req) {
+  const files = req.files?.takenImages || [];
+
+  const uploaded = await Promise.all(
+    files.map((file) => uploadImageBuffer(file.buffer)),
+  );
+
+  return uploaded;
+}
+
 // =========================
 // GET ALL BIKES
 // =========================
 export const getBikes = async (req, res) => {
   try {
-    const isBikeParam = req.query.isBike !== undefined
-      ? req.query.isBike === "1" || req.query.isBike === "true"
-      : undefined;
+    const isBikeParam =
+      req.query.isBike !== undefined
+        ? req.query.isBike === "1" || req.query.isBike === "true"
+        : undefined;
 
     // Check if filtering by own vehicles (e.g. for agent dashboard)
     let userIdFilter = undefined;
@@ -132,7 +163,11 @@ export const getBikes = async (req, res) => {
       if (req.user && req.user.role !== "superadmin") {
         userIdFilter = req.user.id;
       }
-    } else if (req.user && (req.user.role === "agent" || req.user.role === "admin") && req.query.all !== "1") {
+    } else if (
+      req.user &&
+      (req.user.role === "agent" || req.user.role === "admin") &&
+      req.query.all !== "1"
+    ) {
       // If agent is authenticated and accessing admin view without public flag
       if (req.headers.authorization && req.query.public !== "1") {
         userIdFilter = req.user.id;
@@ -184,6 +219,9 @@ export const createBike = async (req, res) => {
     // Upload bluebook images
     const blueBookImages = await uploadBlueBookImages(req);
 
+    // Upload taken extra images
+    const takenImages = await uploadTakenImages(req);
+
     // Determine ownership userId
     const userId =
       req.user && req.user.role !== "superadmin"
@@ -197,6 +235,7 @@ export const createBike = async (req, res) => {
       image: req.file?.buffer ? await uploadImageBuffer(req.file.buffer) : "",
       licenseImage: await uploadLicenseImage(req),
       blueBookImages,
+      takenImages,
     });
 
     // Generate QR code
@@ -212,6 +251,7 @@ export const createBike = async (req, res) => {
       ...bike,
       qrCode,
       blueBookImages: bike.blueBookImages || blueBookImages,
+      takenImages: bike.takenImages || takenImages,
     });
 
     res.status(201).json(toDTO(updatedBike));
@@ -241,7 +281,8 @@ export const updateBike = async (req, res) => {
       String(oldBike.userId) !== String(req.user.id)
     ) {
       return res.status(403).json({
-        message: "Forbidden: You are only authorized to modify your own vehicles.",
+        message:
+          "Forbidden: You are only authorized to modify your own vehicles.",
       });
     }
 
@@ -284,6 +325,22 @@ export const updateBike = async (req, res) => {
 
     updates.blueBookImages = [...existingBlueBookImages, ...newBlueBookImages];
 
+    // Existing taken images
+    const existingTakenImages =
+      oldBike.takenImages ||
+      (() => {
+        try {
+          return oldBike.taken_images ? JSON.parse(oldBike.taken_images) : [];
+        } catch {
+          return [];
+        }
+      })();
+
+    // New taken images
+    const newTakenImages = await uploadTakenImages(req);
+
+    updates.takenImages = [...existingTakenImages, ...newTakenImages];
+
     const updated = await Bike.update(req.params.id, {
       ...oldBike,
       ...updates,
@@ -316,7 +373,8 @@ export const toggleBikeAvailability = async (req, res) => {
       String(bike.userId) !== String(req.user.id)
     ) {
       return res.status(403).json({
-        message: "Forbidden: You are only authorized to modify your own vehicles.",
+        message:
+          "Forbidden: You are only authorized to modify your own vehicles.",
       });
     }
 
@@ -353,7 +411,8 @@ export const deleteBikeLicenseImage = async (req, res) => {
       String(bike.userId) !== String(req.user.id)
     ) {
       return res.status(403).json({
-        message: "Forbidden: You are only authorized to modify your own vehicles.",
+        message:
+          "Forbidden: You are only authorized to modify your own vehicles.",
       });
     }
 
@@ -387,7 +446,8 @@ export const deleteBikeBlueBookImage = async (req, res) => {
       String(bike.userId) !== String(req.user.id)
     ) {
       return res.status(403).json({
-        message: "Forbidden: You are only authorized to modify your own vehicles.",
+        message:
+          "Forbidden: You are only authorized to modify your own vehicles.",
       });
     }
 
@@ -415,11 +475,65 @@ export const deleteBikeBlueBookImage = async (req, res) => {
       ...bike,
       blueBookImages: existingImages,
     });
+  } catch (e) {
+    console.error("Delete Bluebook Image Error:", e);
+    res.status(500).json({
+      message: e.message || "Failed to delete bluebook image.",
+    });
+  }
+};
+
+// =========================
+// DELETE TAKEN IMAGE
+// =========================
+export const deleteBikeTakenImage = async (req, res) => {
+  try {
+    const bike = await Bike.findById(req.params.id);
+
+    if (!bike) {
+      return res.status(404).json({ message: "Bike not found." });
+    }
+
+    if (
+      req.user &&
+      req.user.role !== "superadmin" &&
+      String(bike.userId) !== String(req.user.id)
+    ) {
+      return res.status(403).json({
+        message:
+          "Forbidden: You are only authorized to modify your own vehicles.",
+      });
+    }
+
+    const index = Number(req.params.imageIndex);
+
+    const existingImages =
+      bike.takenImages ||
+      (() => {
+        try {
+          return bike.taken_images ? JSON.parse(bike.taken_images) : [];
+        } catch {
+          return [];
+        }
+      })();
+
+    if (index < 0 || index >= existingImages.length) {
+      return res.status(404).json({
+        message: "Taken photo not found.",
+      });
+    }
+
+    existingImages.splice(index, 1);
+
+    const updated = await Bike.update(req.params.id, {
+      ...bike,
+      takenImages: existingImages,
+    });
 
     res.json(toDTO(updated));
   } catch (err) {
     res.status(500).json({
-      message: err.message || "Failed to delete bluebook image.",
+      message: err.message || "Failed to delete taken image.",
     });
   }
 };
@@ -442,7 +556,8 @@ export const deleteBike = async (req, res) => {
       String(bike.userId) !== String(req.user.id)
     ) {
       return res.status(403).json({
-        message: "Forbidden: You are only authorized to delete your own vehicles.",
+        message:
+          "Forbidden: You are only authorized to delete your own vehicles.",
       });
     }
 

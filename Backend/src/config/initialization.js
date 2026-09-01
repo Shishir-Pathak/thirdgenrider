@@ -63,6 +63,7 @@ export const bikeInit = async () => {
       blue_book_number VARCHAR(100) DEFAULT '',
       blue_book_images LONGTEXT DEFAULT NULL,
       license_image VARCHAR(500) DEFAULT '',
+      taken_images LONGTEXT DEFAULT NULL,
     
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -84,6 +85,11 @@ export const bikeInit = async () => {
   try {
     await pool.query(
       `ALTER TABLE bikes ADD COLUMN isBike TINYINT(1) DEFAULT 1`,
+    );
+  } catch {}
+  try {
+    await pool.query(
+      `ALTER TABLE bikes ADD COLUMN taken_images LONGTEXT DEFAULT NULL`,
     );
   } catch {}
 };

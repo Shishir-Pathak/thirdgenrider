@@ -38,6 +38,10 @@ export const uploadFields = upload.fields([
     name: "blueBookImages",
     maxCount: 10,
   },
+  {
+    name: "takenImages",
+    maxCount: 20,
+  },
 ]);
 export const agentUploadFields = upload.fields([
   {

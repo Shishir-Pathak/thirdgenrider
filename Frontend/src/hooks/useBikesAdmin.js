@@ -62,6 +62,7 @@ export function useBikesAdmin(isBike = true) {
   const imageInputRef = useRef(null);
   const licenseImageInputRef = useRef(null);
   const blueBookImagesInputRefs = useRef([]);
+  const takenImagesInputRefs = useRef([]);
 
   const loadBikes = useCallback(async () => {
     setListError("");
@@ -107,6 +108,9 @@ export function useBikesAdmin(isBike = true) {
     if (imageInputRef.current) imageInputRef.current.value = "";
     if (licenseImageInputRef.current) licenseImageInputRef.current.value = "";
     for (const input of blueBookImagesInputRefs.current) {
+      if (input) input.value = "";
+    }
+    for (const input of takenImagesInputRefs.current) {
       if (input) input.value = "";
     }
   };
@@ -199,6 +203,27 @@ export function useBikesAdmin(isBike = true) {
     }
   };
 
+  const deleteTakenImage = async (index, targetBike = formModal?.bike) => {
+    const bike = targetBike;
+    if (!bike?.takenImages?.[index]) return;
+    if (!window.confirm("Delete this taken photo?")) return;
+
+    setImageDeleteSubmitting(`${bike.id}-taken-${index}`);
+    setImageDeleteError("");
+    try {
+      const res = await authFetch(
+        `/api/bikes/${bike.id}/taken-images/${index}`,
+        { method: "DELETE" },
+      );
+      if (!res.ok) throw new Error(await parseApiError(res));
+      await applyUpdatedBike(await res.json());
+    } catch (err) {
+      setImageDeleteError(err.message || "Failed to delete photo.");
+    } finally {
+      setImageDeleteSubmitting(null);
+    }
+  };
+
   const submitForm = async (e) => {
     e.preventDefault();
     const name = draft.name.trim();
@@ -208,6 +233,9 @@ export function useBikesAdmin(isBike = true) {
     const file = imageInputRef.current?.files?.[0];
     const licenseFile = licenseImageInputRef.current?.files?.[0];
     const blueBookFiles = blueBookImagesInputRefs.current.flatMap((input) =>
+      Array.from(input?.files || []),
+    );
+    const takenFiles = takenImagesInputRefs.current.flatMap((input) =>
       Array.from(input?.files || []),
     );
 
@@ -230,6 +258,11 @@ export function useBikesAdmin(isBike = true) {
       blueBookFiles
         .map((blueBookFile) =>
           validateImageFile(blueBookFile, { label: "Bluebook image" }),
+        )
+        .find(Boolean) ||
+      takenFiles
+        .map((takenFile) =>
+          validateImageFile(takenFile, { label: "Taken image" }),
         )
         .find(Boolean) ||
       "";
@@ -257,6 +290,9 @@ export function useBikesAdmin(isBike = true) {
     if (licenseFile) fd.append("licenseImage", licenseFile);
     for (const blueBookFile of blueBookFiles) {
       fd.append("blueBookImages", blueBookFile);
+    }
+    for (const takenFile of takenFiles) {
+      fd.append("takenImages", takenFile);
     }
 
     setFormSubmitting(true);
@@ -322,6 +358,7 @@ export function useBikesAdmin(isBike = true) {
     imageInputRef,
     licenseImageInputRef,
     blueBookImagesInputRefs,
+    takenImagesInputRefs,
     deleteTarget,
     setDeleteTarget,
     deleteSubmitting,
@@ -332,6 +369,7 @@ export function useBikesAdmin(isBike = true) {
     toggleAvailability,
     deleteLicenseImage,
     deleteBlueBookImage,
+    deleteTakenImage,
     confirmDelete,
   };
 }

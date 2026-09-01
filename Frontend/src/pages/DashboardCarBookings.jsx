@@ -4,14 +4,14 @@ import DeleteBikeBookingModal from "../components/dashboard/DeleteBikeBookingMod
 import ListErrorBanner from "../components/dashboard/ListErrorBanner";
 import { useBikeBookingsAdmin } from "../hooks/useBikeBookingsAdmin";
 
-const DashboardBikeBookings = () => {
-	const bookingsAdmin = useBikeBookingsAdmin(true);
+const DashboardCarBookings = () => {
+	const bookingsAdmin = useBikeBookingsAdmin(false);
 
 	return (
 		<>
 			<div>
 				<h1 className="text-xl font-semibold text-slate-700 dark:text-slate-100">
-					Bike Bookings
+					Car Bookings
 				</h1>
 			</div>
 
@@ -25,7 +25,7 @@ const DashboardBikeBookings = () => {
 				loading={bookingsAdmin.loading}
 				onView={bookingsAdmin.setViewTarget}
 				onDelete={bookingsAdmin.setDeleteTarget}
-				vehicleType="Bike"
+				vehicleType="Car"
 			/>
 
 			<BikeBookingDetailsModal
@@ -43,4 +43,4 @@ const DashboardBikeBookings = () => {
 	);
 };
 
-export default DashboardBikeBookings;
+export default DashboardCarBookings;

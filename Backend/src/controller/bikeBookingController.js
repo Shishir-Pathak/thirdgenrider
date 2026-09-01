@@ -127,13 +127,20 @@ function validateBookingBody(body, res) {
   };
 }
 
-// GET ALL BOOKINGS (Filtered by owner for agents, all for superadmin)
+// GET ALL BOOKINGS (Filtered by owner for agents, all for superadmin, optional isBike filter)
 export const getBikeBookings = async (req, res) => {
   try {
     const isSuperAdmin = req.user?.role === "superadmin";
     const userId = isSuperAdmin ? null : req.user?.id;
+    const isBikeParam =
+      req.query.isBike !== undefined
+        ? req.query.isBike === "1" || req.query.isBike === "true"
+        : undefined;
 
-    const bookings = await BikeBooking.findAll(userId);
+    const bookings = await BikeBooking.findAll({
+      userId,
+      isBike: isBikeParam,
+    });
     res.json(bookings.map(toDTO));
   } catch (err) {
     console.error("Get Bike Bookings Error:", err);

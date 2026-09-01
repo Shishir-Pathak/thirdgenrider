@@ -27,7 +27,7 @@ export default function BikeBookingDetailsModal({ booking, onClose }) {
 		>
 			<div className="mt-5 grid gap-5 sm:grid-cols-2">
 				<DetailRow
-					label="Bike"
+					label={booking?.vehicleType || (booking?.isBike ? "Bike" : "Car")}
 					value={booking?.bikeName || booking?.bike?.name}
 				/>
 				<DetailRow label="Full Name" value={booking?.customerName} />

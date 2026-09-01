@@ -75,10 +75,12 @@ const DashboardBikes = ({ type = "bike" }) => {
         imageInputRef={bikesAdmin.imageInputRef}
         licenseImageInputRef={bikesAdmin.licenseImageInputRef}
         blueBookImagesInputRefs={bikesAdmin.blueBookImagesInputRefs}
+        takenImagesInputRefs={bikesAdmin.takenImagesInputRefs}
         onClose={bikesAdmin.closeForm}
         onSubmit={bikesAdmin.submitForm}
         onDeleteLicenseImage={bikesAdmin.deleteLicenseImage}
         onDeleteBlueBookImage={bikesAdmin.deleteBlueBookImage}
+        onDeleteTakenImage={bikesAdmin.deleteTakenImage}
         isBike={isBike}
       />
 

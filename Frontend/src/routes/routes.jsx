@@ -25,6 +25,7 @@ import DashboardCars from "../pages/DashboardCars";
 import DashboardCompanyDetails from "../pages/DashboardCompanyDetails";
 import DashboardPackages from "../pages/DashboardPackages";
 import DashboardBikeBookings from "../pages/DashboardBikeBookings";
+import DashboardCarBookings from "../pages/DashboardCarBookings";
 import DashboardPackageBookings from "../pages/DashboardPackageBookings";
 import DashboardContact from "../pages/DashboardContact";
 import DashboardBlogs from "../pages/DashboardBlogs";
@@ -34,6 +35,7 @@ import DashboardService from "../pages/DashboardService";
 import DashboardLogin from "../pages/DashboardLogin";
 import DashboardAgents from "../pages/DashboardAgents";
 import Agent from "../pages/Agent";
+import CarBooking from "../pages/CarBooking";
 import { getAuthUser, isSuperAdmin } from "../lib/dashboardAuth";
 
 function ScrollToTop() {
@@ -73,6 +75,7 @@ function AppRouter() {
             />
             <Route path="packages" element={<DashboardPackages />} />
             <Route path="bikeBookings" element={<DashboardBikeBookings />} />
+            <Route path="carBookings" element={<DashboardCarBookings />} />
             <Route
               path="packageBookings"
               element={<DashboardPackageBookings />}
@@ -86,6 +89,7 @@ function AppRouter() {
           <Route path="/about" element={<About />} />
           <Route path="/bikes" element={<Bikes />} />
           <Route path="/cars" element={<Cars />} />
+          <Route path="/car-booking" element={<CarBooking />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:blogSlug" element={<BlogDetails />} />
           <Route path="/contact" element={<Contact />} />

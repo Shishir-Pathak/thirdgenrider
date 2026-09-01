@@ -76,6 +76,15 @@ const Bike = {
           return [];
         }
       })(),
+
+      // Parse taken images
+      takenImages: (() => {
+        try {
+          return bike.taken_images ? JSON.parse(bike.taken_images) : [];
+        } catch {
+          return [];
+        }
+      })(),
     }));
   },
 
@@ -142,6 +151,15 @@ const Bike = {
           return [];
         }
       })(),
+
+      // Parse taken images
+      takenImages: (() => {
+        try {
+          return bike.taken_images ? JSON.parse(bike.taken_images) : [];
+        } catch {
+          return [];
+        }
+      })(),
     };
   },
 
@@ -166,10 +184,10 @@ const Bike = {
         blue_book_number,
         blue_book_images,
         license_image,
-      
+        taken_images,
         isBike
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,  ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
         data.userId || null,
@@ -187,7 +205,7 @@ const Bike = {
         data.blueBookNumber || "",
         JSON.stringify(data.blueBookImages ?? []),
         data.licenseImage || "",
-
+        JSON.stringify(data.takenImages ?? []),
         data.isBike === "true" || data.isBike === true ? 1 : 0,
       ],
     );
@@ -214,7 +232,7 @@ const Bike = {
         blue_book_number=?,
         blue_book_images=?,
         license_image=?,
-  
+        taken_images=?,
         isBike=?
       WHERE id=?
       `,
@@ -233,6 +251,7 @@ const Bike = {
         data.blueBookNumber || "",
         JSON.stringify(data.blueBookImages ?? []),
         data.licenseImage || "",
+        JSON.stringify(data.takenImages ?? []),
         data.isBike === "true" || data.isBike === true || data.isBike === 1
           ? 1
           : 0,

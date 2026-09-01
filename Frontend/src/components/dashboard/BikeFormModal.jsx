@@ -17,19 +17,25 @@ export default function BikeFormModal({
   imageInputRef,
   licenseImageInputRef,
   blueBookImagesInputRefs,
+  takenImagesInputRefs,
   onClose,
   onSubmit,
   onDeleteLicenseImage,
   onDeleteBlueBookImage,
+  onDeleteTakenImage,
   isBike = true,
 }) {
   const isAdd = mode === "add";
   const [blueBookImageFieldCount, setBlueBookImageFieldCount] = useState(1);
+  const [takenImageFieldCount, setTakenImageFieldCount] = useState(1);
   const updateDraft = (field, value) =>
     onDraftChange((d) => ({ ...d, [field]: value }));
 
   useEffect(() => {
-    if (open) setBlueBookImageFieldCount(1);
+    if (open) {
+      setBlueBookImageFieldCount(1);
+      setTakenImageFieldCount(1);
+    }
   }, [open]);
 
   return (
@@ -336,6 +342,7 @@ export default function BikeFormModal({
           )}
         </div>
 
+        {/* Bluebook Images Section */}
         <div>
           <label className={labelClass}>
             Bluebook images{" "}
@@ -351,7 +358,9 @@ export default function BikeFormModal({
                 key={index}
                 id={`bike-blue-book-images-${index}`}
                 ref={(node) => {
-                  blueBookImagesInputRefs.current[index] = node;
+                  if (blueBookImagesInputRefs?.current) {
+                    blueBookImagesInputRefs.current[index] = node;
+                  }
                 }}
                 type="file"
                 accept="image/*"
@@ -406,6 +415,93 @@ export default function BikeFormModal({
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+        </div>
+
+        {/* Taken Section (Extra Photos shown to the public) */}
+        <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 dark:border-slate-700 dark:bg-slate-800/30">
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="block text-sm font-bold text-slate-900 dark:text-white">
+                Taken Photos (Extra Public Gallery)
+              </label>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Upload real condition photos / extra angle shots taken of this vehicle. Visible to the public on details pages.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-3 space-y-2">
+            {Array.from({ length: takenImageFieldCount }).map((_, index) => (
+              <input
+                key={index}
+                id={`bike-taken-images-${index}`}
+                ref={(node) => {
+                  if (takenImagesInputRefs?.current) {
+                    takenImagesInputRefs.current[index] = node;
+                  }
+                }}
+                type="file"
+                accept="image/*"
+                multiple
+                className={inputClass}
+                disabled={submitting}
+              />
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setTakenImageFieldCount((count) => count + 1)}
+            disabled={submitting}
+            className="mt-2 inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:opacity-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+          >
+            <Plus className="h-4 w-4" aria-hidden="true" />
+            + Add more taken photos
+          </button>
+
+          {!isAdd && bike?.takenImages?.length > 0 && (
+            <div className="mt-4">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                Currently Uploaded Taken Photos ({bike.takenImages.length})
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+                {bike.takenImages.map((imageUrl, index) => (
+                  <div
+                    key={`${imageUrl}-${index}`}
+                    className="overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800"
+                  >
+                    <a href={imageUrl} target="_blank" rel="noreferrer">
+                      <img
+                        src={imageUrl}
+                        alt={`${bike.name} taken ${index + 1}`}
+                        className="h-28 w-full object-cover p-1"
+                      />
+                    </a>
+                    <div className="flex items-center justify-between gap-1 border-t border-slate-100 px-2 py-1.5 dark:border-slate-700">
+                      <span className="text-[11px] font-medium text-slate-600 dark:text-slate-300">
+                        Photo #{index + 1}
+                      </span>
+                      <DashboardButton
+                        type="button"
+                        onClick={() => onDeleteTakenImage && onDeleteTakenImage(index, bike)}
+                        disabled={
+                          submitting ||
+                          imageDeleteSubmitting === `${bike.id}-taken-${index}`
+                        }
+                        variant="danger"
+                        size="sm"
+                        icon={Trash2}
+                      >
+                        {imageDeleteSubmitting === `${bike.id}-taken-${index}`
+                          ? "Deleting..."
+                          : "Delete"}
+                      </DashboardButton>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
